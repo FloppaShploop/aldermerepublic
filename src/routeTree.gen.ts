@@ -16,6 +16,9 @@ import { Route as AdmissionsRouteImport } from './routes/admissions'
 import { Route as ArcadeRouteImport } from './routes/arcade'
 import { Route as CampusLifeRouteImport } from './routes/campus-life'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as ArcadeIndexRouteImport } from './routes/arcade.index'
+import { Route as ArcadeAdminRouteImport } from './routes/arcade.admin'
+import { Route as ArcadePlayGameIdRouteImport } from './routes/arcade.play.$gameId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,24 +55,44 @@ const PortalRoute = PortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ArcadeIndexRoute = ArcadeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ArcadeRoute,
+} as any)
+const ArcadeAdminRoute = ArcadeAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => ArcadeRoute,
+} as any)
+const ArcadePlayGameIdRoute = ArcadePlayGameIdRouteImport.update({
+  id: '/play/$gameId',
+  path: '/play/$gameId',
+  getParentRoute: () => ArcadeRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/academics': typeof AcademicsRoute
   '/access': typeof AccessRoute
   '/admissions': typeof AdmissionsRoute
-  '/arcade': typeof ArcadeRoute
+  '/arcade': typeof ArcadeRouteWithChildren
   '/campus-life': typeof CampusLifeRoute
   '/portal': typeof PortalRoute
+  '/arcade/admin': typeof ArcadeAdminRoute
+  '/arcade/': typeof ArcadeIndexRoute
+  '/arcade/play/$gameId': typeof ArcadePlayGameIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/academics': typeof AcademicsRoute
   '/access': typeof AccessRoute
   '/admissions': typeof AdmissionsRoute
-  '/arcade': typeof ArcadeRoute
   '/campus-life': typeof CampusLifeRoute
   '/portal': typeof PortalRoute
+  '/arcade/admin': typeof ArcadeAdminRoute
+  '/arcade': typeof ArcadeIndexRoute
+  '/arcade/play/$gameId': typeof ArcadePlayGameIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,9 +100,12 @@ export interface FileRoutesById {
   '/academics': typeof AcademicsRoute
   '/access': typeof AccessRoute
   '/admissions': typeof AdmissionsRoute
-  '/arcade': typeof ArcadeRoute
+  '/arcade': typeof ArcadeRouteWithChildren
   '/campus-life': typeof CampusLifeRoute
   '/portal': typeof PortalRoute
+  '/arcade/admin': typeof ArcadeAdminRoute
+  '/arcade/': typeof ArcadeIndexRoute
+  '/arcade/play/$gameId': typeof ArcadePlayGameIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,15 +117,20 @@ export interface FileRouteTypes {
     | '/arcade'
     | '/campus-life'
     | '/portal'
+    | '/arcade/admin'
+    | '/arcade/'
+    | '/arcade/play/$gameId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/academics'
     | '/access'
     | '/admissions'
-    | '/arcade'
     | '/campus-life'
     | '/portal'
+    | '/arcade/admin'
+    | '/arcade'
+    | '/arcade/play/$gameId'
   id:
     | '__root__'
     | '/'
@@ -109,6 +140,9 @@ export interface FileRouteTypes {
     | '/arcade'
     | '/campus-life'
     | '/portal'
+    | '/arcade/admin'
+    | '/arcade/'
+    | '/arcade/play/$gameId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,7 +150,7 @@ export interface RootRouteChildren {
   AcademicsRoute: typeof AcademicsRoute
   AccessRoute: typeof AccessRoute
   AdmissionsRoute: typeof AdmissionsRoute
-  ArcadeRoute: typeof ArcadeRoute
+  ArcadeRoute: typeof ArcadeRouteWithChildren
   CampusLifeRoute: typeof CampusLifeRoute
   PortalRoute: typeof PortalRoute
 }
@@ -172,15 +206,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/arcade/': {
+      id: '/arcade/'
+      path: '/'
+      fullPath: '/arcade/'
+      preLoaderRoute: typeof ArcadeIndexRouteImport
+      parentRoute: typeof ArcadeRoute
+    }
+    '/arcade/admin': {
+      id: '/arcade/admin'
+      path: '/admin'
+      fullPath: '/arcade/admin'
+      preLoaderRoute: typeof ArcadeAdminRouteImport
+      parentRoute: typeof ArcadeRoute
+    }
+    '/arcade/play/$gameId': {
+      id: '/arcade/play/$gameId'
+      path: '/play/$gameId'
+      fullPath: '/arcade/play/$gameId'
+      preLoaderRoute: typeof ArcadePlayGameIdRouteImport
+      parentRoute: typeof ArcadeRoute
+    }
   }
 }
+
+interface ArcadeRouteChildren {
+  ArcadeAdminRoute: typeof ArcadeAdminRoute
+  ArcadeIndexRoute: typeof ArcadeIndexRoute
+  ArcadePlayGameIdRoute: typeof ArcadePlayGameIdRoute
+}
+
+const ArcadeRouteChildren: ArcadeRouteChildren = {
+  ArcadeAdminRoute: ArcadeAdminRoute,
+  ArcadeIndexRoute: ArcadeIndexRoute,
+  ArcadePlayGameIdRoute: ArcadePlayGameIdRoute,
+}
+
+const ArcadeRouteWithChildren =
+  ArcadeRoute._addFileChildren(ArcadeRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcademicsRoute: AcademicsRoute,
   AccessRoute: AccessRoute,
   AdmissionsRoute: AdmissionsRoute,
-  ArcadeRoute: ArcadeRoute,
+  ArcadeRoute: ArcadeRouteWithChildren,
   CampusLifeRoute: CampusLifeRoute,
   PortalRoute: PortalRoute,
 }
