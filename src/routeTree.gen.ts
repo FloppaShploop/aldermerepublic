@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AcademicsRouteImport } from './routes/academics'
+import { Route as AccessRouteImport } from './routes/access'
 import { Route as AdmissionsRouteImport } from './routes/admissions'
+import { Route as ArcadeRouteImport } from './routes/arcade'
 import { Route as CampusLifeRouteImport } from './routes/campus-life'
+import { Route as PortalRouteImport } from './routes/portal'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,9 +27,19 @@ const AcademicsRoute = AcademicsRouteImport.update({
   path: '/academics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccessRoute = AccessRouteImport.update({
+  id: '/access',
+  path: '/access',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdmissionsRoute = AdmissionsRouteImport.update({
   id: '/admissions',
   path: '/admissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArcadeRoute = ArcadeRouteImport.update({
+  id: '/arcade',
+  path: '/arcade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CampusLifeRoute = CampusLifeRouteImport.update({
@@ -34,39 +47,78 @@ const CampusLifeRoute = CampusLifeRouteImport.update({
   path: '/campus-life',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/academics': typeof AcademicsRoute
+  '/access': typeof AccessRoute
   '/admissions': typeof AdmissionsRoute
+  '/arcade': typeof ArcadeRoute
   '/campus-life': typeof CampusLifeRoute
+  '/portal': typeof PortalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/academics': typeof AcademicsRoute
+  '/access': typeof AccessRoute
   '/admissions': typeof AdmissionsRoute
+  '/arcade': typeof ArcadeRoute
   '/campus-life': typeof CampusLifeRoute
+  '/portal': typeof PortalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/academics': typeof AcademicsRoute
+  '/access': typeof AccessRoute
   '/admissions': typeof AdmissionsRoute
+  '/arcade': typeof ArcadeRoute
   '/campus-life': typeof CampusLifeRoute
+  '/portal': typeof PortalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/academics' | '/admissions' | '/campus-life'
+  fullPaths:
+    | '/'
+    | '/academics'
+    | '/access'
+    | '/admissions'
+    | '/arcade'
+    | '/campus-life'
+    | '/portal'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/academics' | '/admissions' | '/campus-life'
-  id: '__root__' | '/' | '/academics' | '/admissions' | '/campus-life'
+  to:
+    | '/'
+    | '/academics'
+    | '/access'
+    | '/admissions'
+    | '/arcade'
+    | '/campus-life'
+    | '/portal'
+  id:
+    | '__root__'
+    | '/'
+    | '/academics'
+    | '/access'
+    | '/admissions'
+    | '/arcade'
+    | '/campus-life'
+    | '/portal'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcademicsRoute: typeof AcademicsRoute
+  AccessRoute: typeof AccessRoute
   AdmissionsRoute: typeof AdmissionsRoute
+  ArcadeRoute: typeof ArcadeRoute
   CampusLifeRoute: typeof CampusLifeRoute
+  PortalRoute: typeof PortalRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -85,11 +137,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcademicsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/access': {
+      id: '/access'
+      path: '/access'
+      fullPath: '/access'
+      preLoaderRoute: typeof AccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admissions': {
       id: '/admissions'
       path: '/admissions'
       fullPath: '/admissions'
       preLoaderRoute: typeof AdmissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arcade': {
+      id: '/arcade'
+      path: '/arcade'
+      fullPath: '/arcade'
+      preLoaderRoute: typeof ArcadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/campus-life': {
@@ -99,14 +165,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampusLifeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcademicsRoute: AcademicsRoute,
+  AccessRoute: AccessRoute,
   AdmissionsRoute: AdmissionsRoute,
+  ArcadeRoute: ArcadeRoute,
   CampusLifeRoute: CampusLifeRoute,
+  PortalRoute: PortalRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
