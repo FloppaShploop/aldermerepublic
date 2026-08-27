@@ -111,9 +111,20 @@ function PlayGame() {
           <h1 className="neon text-2xl text-primary">{game.name}</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{game.description}</p>
         </div>
-        <p className="text-xs uppercase tracking-widest text-accent">{saveState}</p>
+        <div className="flex items-center gap-3">
+          <p className="text-xs uppercase tracking-widest text-accent">{saveState}</p>
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="neon-border inline-flex items-center gap-2 rounded-md bg-card/70 px-3 py-2 text-xs uppercase tracking-widest text-primary transition-transform hover:-translate-y-0.5"
+            aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            {isFullscreen ? "exit" : "fullscreen"}
+          </button>
+        </div>
       </div>
-      <div className="neon-border mt-6 overflow-hidden rounded-lg bg-black">
+      <div ref={containerRef} className="neon-border mt-6 overflow-hidden rounded-lg bg-black">
         <iframe
           ref={frameRef}
           title={game.name}
