@@ -130,7 +130,7 @@ function PlayGame() {
           title={game.name}
           srcDoc={BRIDGE + game.html}
           sandbox="allow-scripts allow-pointer-lock allow-modals"
-          className="h-[70vh] w-full border-0 bg-black"
+          className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
         />
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
