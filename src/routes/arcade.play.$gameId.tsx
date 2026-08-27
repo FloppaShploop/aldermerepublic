@@ -52,7 +52,7 @@ function PlayGame() {
       progressRef.current = data;
       const { error } = await supabase
         .from("game_progress")
-        .upsert({ user_id: u.user.id, game_id: gameId, data, updated_at: new Date().toISOString() }, { onConflict: "user_id,game_id" });
+        .upsert({ user_id: u.user.id, game_id: gameId, data: data as never, updated_at: new Date().toISOString() }, { onConflict: "user_id,game_id" });
       setSaveState(error ? "save failed" : `progress saved · ${new Date().toLocaleTimeString()}`);
     },
     [gameId],

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/useAuth";
-import { deleteAccount } from "@/lib/admin.functions";
+import { deleteAccount, deleteGame as deleteGameFn } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/arcade/admin")({
   ssr: false,
@@ -25,6 +25,7 @@ function AdminPanel() {
   const [html, setHtml] = useState("");
   const [busy, setBusy] = useState(false);
   const removeAccount = useServerFn(deleteAccount);
+  const removeGame = useServerFn(deleteGameFn);
 
   const refresh = async () => {
     const [{ data: p }, { data: g }, { data: r }] = await Promise.all([
