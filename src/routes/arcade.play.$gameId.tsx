@@ -33,7 +33,9 @@ function PlayGame() {
   const { gameId } = Route.useParams();
   const [game, setGame] = useState<Game | null>(null);
   const [saveState, setSaveState] = useState<string>("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<Record<string, unknown>>({});
 
   useEffect(() => {
