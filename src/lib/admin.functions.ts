@@ -17,3 +17,21 @@ export const deleteAccount = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+export const deleteGame = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { gameId: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Forbidden: admin access required");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: pErr } = await supabaseAdmin.from("game_progress").delete().eq("game_id", data.gameId);
+    if (pErr) throw new Error(pErr.message);
+    const { error } = await supabaseAdmin.from("games").delete().eq("id", data.gameId);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
