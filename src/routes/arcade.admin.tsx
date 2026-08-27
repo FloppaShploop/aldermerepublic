@@ -105,11 +105,17 @@ function AdminPanel() {
   };
 
   const deleteGame = async (id: string, gname: string) => {
-    if (!confirm(`Remove "${gname}" from the grid?`)) return;
-    await supabase.from("games").delete().eq("id", id);
-    setStatus(`"${gname}" removed.`);
-    void refresh();
+    if (!confirm(`Permanently delete "${gname}" and all saved progress for it?`)) return;
+    setStatus(`Deleting "${gname}"…`);
+    try {
+      await removeGame({ data: { gameId: id } });
+      setStatus(`"${gname}" removed from the grid.`);
+      await refresh();
+    } catch (err) {
+      setStatus(err instanceof Error ? `Delete failed: ${err.message}` : "Delete failed");
+    }
   };
+
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
