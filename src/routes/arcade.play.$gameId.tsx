@@ -77,6 +77,26 @@ function PlayGame() {
     return () => window.removeEventListener("message", onMessage);
   }, [saveProgress]);
 
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullscreen = useCallback(async () => {
+    const el = containerRef.current;
+    if (!el) return;
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await el.requestFullscreen();
+      }
+    } catch {
+      // Ignore fullscreen errors (e.g. unsupported iframe content).
+    }
+  }, []);
+
   if (!game) {
     return <p className="p-10 text-center text-sm text-muted-foreground">loading cartridge…</p>;
   }
