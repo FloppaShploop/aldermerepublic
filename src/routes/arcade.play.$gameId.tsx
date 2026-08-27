@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Maximize, Minimize } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/arcade/play/$gameId")({
@@ -32,7 +33,9 @@ function PlayGame() {
   const { gameId } = Route.useParams();
   const [game, setGame] = useState<Game | null>(null);
   const [saveState, setSaveState] = useState<string>("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<Record<string, unknown>>({});
 
   useEffect(() => {
@@ -74,6 +77,26 @@ function PlayGame() {
     return () => window.removeEventListener("message", onMessage);
   }, [saveProgress]);
 
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullscreen = useCallback(async () => {
+    const el = containerRef.current;
+    if (!el) return;
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await el.requestFullscreen();
+      }
+    } catch {
+      // Ignore fullscreen errors (e.g. unsupported iframe content).
+    }
+  }, []);
+
   if (!game) {
     return <p className="p-10 text-center text-sm text-muted-foreground">loading cartridge…</p>;
   }
@@ -88,15 +111,26 @@ function PlayGame() {
           <h1 className="neon text-2xl text-primary">{game.name}</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{game.description}</p>
         </div>
-        <p className="text-xs uppercase tracking-widest text-accent">{saveState}</p>
+        <div className="flex items-center gap-3">
+          <p className="text-xs uppercase tracking-widest text-accent">{saveState}</p>
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="neon-border inline-flex items-center gap-2 rounded-md bg-card/70 px-3 py-2 text-xs uppercase tracking-widest text-primary transition-transform hover:-translate-y-0.5"
+            aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            {isFullscreen ? "exit" : "fullscreen"}
+          </button>
+        </div>
       </div>
-      <div className="neon-border mt-6 overflow-hidden rounded-lg bg-black">
+      <div ref={containerRef} className="neon-border mt-6 overflow-hidden rounded-lg bg-black">
         <iframe
           ref={frameRef}
           title={game.name}
           srcDoc={BRIDGE + game.html}
           sandbox="allow-scripts allow-pointer-lock allow-modals"
-          className="h-[70vh] w-full border-0 bg-black"
+          className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
         />
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
