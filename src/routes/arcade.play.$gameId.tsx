@@ -99,7 +99,7 @@ function PlayGame() {
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
-      const d = e.data as { __arcade?: string; data?: Record<string, unknown> };
+      const d = e.data as { __arcade?: string; data?: Record<string, unknown>; message?: string };
       if (!d || !d.__arcade) return;
       if (d.__arcade === "ready") {
         frameRef.current?.contentWindow?.postMessage(
@@ -108,10 +108,12 @@ function PlayGame() {
         );
       }
       if (d.__arcade === "save") void saveProgress(d.data ?? {});
+      if (d.__arcade === "error") setGameError(d.message ?? "script error");
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, [saveProgress]);
+
 
   useEffect(() => {
     const onChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
