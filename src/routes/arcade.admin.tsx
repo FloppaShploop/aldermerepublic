@@ -60,12 +60,15 @@ function AdminPanel() {
 
   const upload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!html.trim()) return setStatus("No HTML code provided.");
+    const link = url.trim();
+    if (!html.trim() && !link) return setStatus("Provide HTML code or a game link.");
+    if (link && !/^https:\/\/\S+$/i.test(link)) return setStatus("Link must be a full https:// URL.");
     setBusy(true);
     const { error } = await supabase.from("games").insert({
       name: name.trim(),
       description: description.trim(),
-      html,
+      html: link ? "" : html,
+      url: link || null,
       created_by: profile?.id ?? null,
     });
     setBusy(false);
@@ -74,6 +77,7 @@ function AdminPanel() {
     setName("");
     setDescription("");
     setHtml("");
+    setUrl("");
     void refresh();
   };
 
@@ -185,6 +189,20 @@ function AdminPanel() {
               placeholder="<!DOCTYPE html> ..."
               className="mt-2 w-full rounded border border-input bg-background px-3 py-2 font-mono text-xs outline-none focus:ring-2 focus:ring-ring"
             />
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-widest text-muted-foreground">
+              Or import from a link (embedded, URL hidden)
+            </label>
+            <input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://example.com/game"
+              className="mt-2 w-full rounded border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              A link takes priority over pasted code. Sites that block embedding won’t load.
+            </p>
           </div>
           <button
             disabled={busy}
