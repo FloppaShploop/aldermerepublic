@@ -185,8 +185,13 @@ function PlayGame() {
             className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
           />
         )}
-
       </div>
+      {gameError && (
+        <p className="mt-3 text-xs text-destructive">
+          Cartridge reported an error: {gameError} — this game may rely on external files that aren’t included.
+        </p>
+      )}
+
       <p className="mt-4 text-xs text-muted-foreground">
         Games can save your progress by calling <code className="text-primary">ArcadeSave(&#123;...&#125;)</code> and
         read it back with <code className="text-primary">await ArcadeLoad()</code>.
