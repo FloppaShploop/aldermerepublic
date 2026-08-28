@@ -23,6 +23,7 @@ function AdminPanel() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [html, setHtml] = useState("");
+  const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const removeAccount = useServerFn(deleteAccount);
   const removeGame = useServerFn(deleteGameFn);
