@@ -27,7 +27,7 @@ const BRIDGE = `<script>
 })();
 </script>`;
 
-type Game = { id: string; name: string; description: string; html: string };
+type Game = { id: string; name: string; description: string; html: string; url: string | null };
 
 function PlayGame() {
   const { gameId } = Route.useParams();
@@ -40,7 +40,7 @@ function PlayGame() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: g } = await supabase.from("games").select("id,name,description,html").eq("id", gameId).maybeSingle();
+      const { data: g } = await supabase.from("games").select("id,name,description,html,url").eq("id", gameId).maybeSingle();
       setGame((g as Game) ?? null);
       const { data: p } = await supabase.from("game_progress").select("data").eq("game_id", gameId).maybeSingle();
       progressRef.current = (p?.data as Record<string, unknown>) ?? {};
@@ -125,13 +125,25 @@ function PlayGame() {
         </div>
       </div>
       <div ref={containerRef} className="neon-border mt-6 overflow-hidden rounded-lg bg-black">
-        <iframe
-          ref={frameRef}
-          title={game.name}
-          srcDoc={BRIDGE + game.html}
-          sandbox="allow-scripts allow-pointer-lock allow-modals"
-          className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
-        />
+        {game.url ? (
+          <iframe
+            ref={frameRef}
+            title={game.name}
+            src={game.url}
+            referrerPolicy="no-referrer"
+            allow="autoplay; fullscreen; gamepad; pointer-lock"
+            sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups"
+            className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
+          />
+        ) : (
+          <iframe
+            ref={frameRef}
+            title={game.name}
+            srcDoc={BRIDGE + game.html}
+            sandbox="allow-scripts allow-pointer-lock allow-modals"
+            className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
+          />
+        )}
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
         Games can save your progress by calling <code className="text-primary">ArcadeSave(&#123;...&#125;)</code> and
