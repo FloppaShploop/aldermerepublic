@@ -28,6 +28,14 @@ const BRIDGE = `<script>
     try { window[name].setItem('__probe','1'); window[name].removeItem('__probe'); ok = true; } catch (e) {}
     if (!ok) { try { Object.defineProperty(window, name, { value: shim(), configurable: true }); } catch (e) {} }
   });
+  // Gamepad access can be blocked by permissions policy; never let it throw.
+  try {
+    var origPads = navigator.getGamepads && navigator.getGamepads.bind(navigator);
+    navigator.getGamepads = function(){
+      try { return origPads ? origPads() : []; } catch (e) { return []; }
+    };
+  } catch (e) {}
+
   // Games that call these in a sandbox throw and stop executing.
   ['requestFullscreen','webkitRequestFullscreen'].forEach(function(fn){
     try {
@@ -181,7 +189,7 @@ function PlayGame() {
             title={game.name}
             srcDoc={BRIDGE + game.html}
             allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write"
-            sandbox="allow-scripts allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads"
+            sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads"
             className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
           />
         )}
