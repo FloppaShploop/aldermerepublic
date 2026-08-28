@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      game_errors: {
+        Row: {
+          created_at: string
+          game_id: string | null
+          id: string
+          message: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          game_id?: string | null
+          id?: string
+          message: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          game_id?: string | null
+          id?: string
+          message?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_errors_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_progress: {
         Row: {
           data: Json
@@ -45,6 +77,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      game_suggestions: {
+        Row: {
+          created_at: string
+          id: string
+          note: string
+          title: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string
+          title: string
+          user_id: string
+          username?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string
+          title?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
       }
       games: {
         Row: {
