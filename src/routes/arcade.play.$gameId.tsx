@@ -70,6 +70,8 @@ function PlayGame() {
   const [game, setGame] = useState<Game | null>(null);
   const [saveState, setSaveState] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [gameError, setGameError] = useState<string | null>(null);
+
   const frameRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<Record<string, unknown>>({});
