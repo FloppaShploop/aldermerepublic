@@ -176,10 +176,12 @@ function PlayGame() {
             ref={frameRef}
             title={game.name}
             srcDoc={BRIDGE + game.html}
-            sandbox="allow-scripts allow-pointer-lock allow-modals"
+            allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write"
+            sandbox="allow-scripts allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads"
             className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
           />
         )}
+
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
         Games can save your progress by calling <code className="text-primary">ArcadeSave(&#123;...&#125;)</code> and
