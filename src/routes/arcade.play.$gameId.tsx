@@ -10,6 +10,33 @@ export const Route = createFileRoute("/arcade/play/$gameId")({
 
 const BRIDGE = `<script>
 (function(){
+  // Sandboxed frames have an opaque origin, so touching localStorage throws and
+  // kills most games on their first line. Swap in an in-memory shim up front.
+  function shim(){
+    var m = {};
+    return {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(m, k) ? m[k] : null; },
+      setItem: function(k, v){ m[k] = String(v); },
+      removeItem: function(k){ delete m[k]; },
+      clear: function(){ m = {}; },
+      key: function(i){ return Object.keys(m)[i] != null ? Object.keys(m)[i] : null; },
+      get length(){ return Object.keys(m).length; }
+    };
+  }
+  ['localStorage','sessionStorage'].forEach(function(name){
+    var ok = false;
+    try { window[name].setItem('__probe','1'); window[name].removeItem('__probe'); ok = true; } catch (e) {}
+    if (!ok) { try { Object.defineProperty(window, name, { value: shim(), configurable: true }); } catch (e) {} }
+  });
+  // Games that call these in a sandbox throw and stop executing.
+  ['requestFullscreen','webkitRequestFullscreen'].forEach(function(fn){
+    try {
+      var proto = Element.prototype;
+      var orig = proto[fn];
+      if (orig) proto[fn] = function(){ try { return orig.apply(this, arguments); } catch (e) { return Promise.resolve(); } };
+    } catch (e) {}
+  });
+
   var pending = [];
   var resolved = null;
   window.ArcadeSave = function(data){ parent.postMessage({__arcade:'save', data: data}, '*'); };
@@ -23,9 +50,18 @@ const BRIDGE = `<script>
       pending.splice(0).forEach(function(r){ r(resolved); });
     }
   });
+  window.addEventListener('error', function(e){
+    parent.postMessage({__arcade:'error', message: (e && e.message) || 'script error'}, '*');
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    var r = e && e.reason;
+    parent.postMessage({__arcade:'error', message: (r && r.message) || String(r)}, '*');
+  });
   parent.postMessage({__arcade:'ready'}, '*');
 })();
-</script>`;
+</script>
+<style>html,body{margin:0;height:100%;background:#000;color:#fff;overflow:hidden}canvas{max-width:100%}</style>`;
+
 
 type Game = { id: string; name: string; description: string; html: string; url: string | null };
 
@@ -34,6 +70,8 @@ function PlayGame() {
   const [game, setGame] = useState<Game | null>(null);
   const [saveState, setSaveState] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [gameError, setGameError] = useState<string | null>(null);
+
   const frameRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<Record<string, unknown>>({});
@@ -63,7 +101,7 @@ function PlayGame() {
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
-      const d = e.data as { __arcade?: string; data?: Record<string, unknown> };
+      const d = e.data as { __arcade?: string; data?: Record<string, unknown>; message?: string };
       if (!d || !d.__arcade) return;
       if (d.__arcade === "ready") {
         frameRef.current?.contentWindow?.postMessage(
@@ -72,10 +110,12 @@ function PlayGame() {
         );
       }
       if (d.__arcade === "save") void saveProgress(d.data ?? {});
+      if (d.__arcade === "error") setGameError(d.message ?? "script error");
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, [saveProgress]);
+
 
   useEffect(() => {
     const onChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
@@ -140,11 +180,18 @@ function PlayGame() {
             ref={frameRef}
             title={game.name}
             srcDoc={BRIDGE + game.html}
-            sandbox="allow-scripts allow-pointer-lock allow-modals"
+            allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write"
+            sandbox="allow-scripts allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads"
             className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
           />
         )}
       </div>
+      {gameError && (
+        <p className="mt-3 text-xs text-destructive">
+          Cartridge reported an error: {gameError} — this game may rely on external files that aren’t included.
+        </p>
+      )}
+
       <p className="mt-4 text-xs text-muted-foreground">
         Games can save your progress by calling <code className="text-primary">ArcadeSave(&#123;...&#125;)</code> and
         read it back with <code className="text-primary">await ArcadeLoad()</code>.
