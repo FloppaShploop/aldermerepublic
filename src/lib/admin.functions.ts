@@ -5,10 +5,12 @@ export const deleteAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { userId: string }) => input)
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
+    const { data: adminRows } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin");
+    const isAdmin = !!adminRows?.length;
     if (!isAdmin) throw new Error("Forbidden");
     if (data.userId === context.userId) throw new Error("Cannot delete the admin account");
 
@@ -22,10 +24,12 @@ export const deleteGame = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { gameId: string }) => input)
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
+    const { data: adminRows } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin");
+    const isAdmin = !!adminRows?.length;
     if (!isAdmin) throw new Error("Forbidden: admin access required");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
