@@ -12,12 +12,16 @@ export const Route = createFileRoute("/arcade/admin")({
 
 type Row = { id: string; username: string; banned: boolean; kicked_at: string | null; created_at: string };
 type Game = { id: string; name: string; description: string; created_at: string };
+type ErrRow = { id: string; game_id: string | null; message: string; created_at: string };
+type Suggestion = { id: string; username: string; title: string; note: string; created_at: string };
 
 function AdminPanel() {
   const { isAdmin, loading, profile } = useAuth();
   const [users, setUsers] = useState<Row[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [admins, setAdmins] = useState<string[]>([]);
+  const [errors, setErrors] = useState<ErrRow[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [status, setStatus] = useState<string | null>(null);
 
   const [name, setName] = useState("");
@@ -29,19 +33,31 @@ function AdminPanel() {
   const removeGame = useServerFn(deleteGameFn);
 
   const refresh = async () => {
-    const [{ data: p }, { data: g }, { data: r }] = await Promise.all([
+    const [{ data: p }, { data: g }, { data: r }, { data: e }, { data: s }] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at"),
       supabase.from("games").select("id,name,description,created_at").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id,role").eq("role", "admin"),
+      supabase
+        .from("game_errors")
+        .select("id,game_id,message,created_at")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("game_suggestions")
+        .select("id,username,title,note,created_at")
+        .order("created_at", { ascending: false }),
     ]);
     setUsers((p as Row[]) ?? []);
     setGames((g as Game[]) ?? []);
     setAdmins((r ?? []).map((x) => x.user_id));
+    setErrors((e as ErrRow[]) ?? []);
+    setSuggestions((s as Suggestion[]) ?? []);
   };
 
   useEffect(() => {
     if (isAdmin) void refresh();
   }, [isAdmin]);
+
 
   if (loading) return <p className="p-10 text-center text-sm text-muted-foreground">verifying clearance…</p>;
   if (!isAdmin) {
@@ -282,6 +298,64 @@ function AdminPanel() {
           {games.length === 0 && <li className="py-3 text-sm text-muted-foreground">Nothing published yet.</li>}
         </ul>
       </section>
+
+      <section className="neon-border mt-8 rounded-lg bg-card/70 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl text-primary">Game error log</h2>
+          <button
+            onClick={async () => {
+              if (!confirm("Clear all logged game errors?")) return;
+              const { error } = await supabase.from("game_errors").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+              setStatus(error ? `Clear failed: ${error.message}` : "Error log cleared.");
+              void refresh();
+            }}
+            className="rounded border border-border px-3 py-1 text-xs uppercase tracking-widest hover:text-primary"
+          >
+            Clear log
+          </button>
+        </div>
+        <ul className="mt-4 divide-y divide-border/60">
+          {errors.map((e) => (
+            <li key={e.id} className="py-3 text-sm">
+              <span className="text-accent">{games.find((g) => g.id === e.game_id)?.name ?? "unknown game"}</span>
+              <span className="ml-2 text-xs text-muted-foreground">
+                {new Date(e.created_at).toLocaleString()}
+              </span>
+              <p className="mt-1 font-mono text-xs text-destructive break-words">{e.message}</p>
+            </li>
+          ))}
+          {errors.length === 0 && <li className="py-3 text-sm text-muted-foreground">No errors reported.</li>}
+        </ul>
+      </section>
+
+      <section className="neon-border mt-8 rounded-lg bg-card/70 p-6">
+        <h2 className="text-xl text-primary">Suggestions channel</h2>
+        <ul className="mt-4 divide-y divide-border/60">
+          {suggestions.map((s) => (
+            <li key={s.id} className="flex items-start justify-between gap-4 py-3 text-sm">
+              <span>
+                <span className="text-foreground">{s.title}</span>
+                <span className="ml-2 text-xs text-accent">{s.username || "operator"}</span>
+                {s.note && <span className="block text-xs text-muted-foreground">{s.note}</span>}
+              </span>
+              <button
+                onClick={async () => {
+                  await supabase.from("game_suggestions").delete().eq("id", s.id);
+                  setStatus("Suggestion dismissed.");
+                  void refresh();
+                }}
+                className="rounded border border-destructive/60 px-2 py-1 text-xs text-destructive"
+              >
+                Dismiss
+              </button>
+            </li>
+          ))}
+          {suggestions.length === 0 && (
+            <li className="py-3 text-sm text-muted-foreground">No suggestions yet.</li>
+          )}
+        </ul>
+      </section>
+
     </div>
   );
 }

@@ -40,11 +40,17 @@ function ArcadeLayout() {
             NEXUS//ARCADE
           </Link>
           <div className="flex flex-wrap items-center gap-4 text-xs uppercase tracking-widest">
+            {session && (
+              <Link to="/arcade/suggest" className="text-primary hover:opacity-80">
+                Suggest a game
+              </Link>
+            )}
             {isAdmin && (
               <Link to="/arcade/admin" className="text-accent hover:opacity-80">
                 Admin Panel
               </Link>
             )}
+
             {profile && <span className="text-muted-foreground">operator: {profile.username}</span>}
             {session && (
               <button

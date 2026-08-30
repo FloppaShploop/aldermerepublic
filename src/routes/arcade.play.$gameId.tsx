@@ -79,10 +79,24 @@ function PlayGame() {
   const [saveState, setSaveState] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [gameError, setGameError] = useState<string | null>(null);
+  const [frameLoaded, setFrameLoaded] = useState(false);
+  const [blocked, setBlocked] = useState(false);
 
   const frameRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<Record<string, unknown>>({});
+
+  const reportError = useCallback(
+    async (message: string) => {
+      const { data: u } = await supabase.auth.getUser();
+      await supabase.from("game_errors").insert({
+        game_id: gameId,
+        user_id: u.user?.id ?? null,
+        message: message.slice(0, 500),
+      });
+    },
+    [gameId],
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -93,6 +107,23 @@ function PlayGame() {
     };
     void load();
   }, [gameId]);
+
+  // Some external sites refuse to be embedded (X-Frame-Options / CSP frame-ancestors).
+  // If nothing ever loads, surface a fallback instead of a permanently black frame.
+  useEffect(() => {
+    if (!game?.url) return;
+    setFrameLoaded(false);
+    setBlocked(false);
+    const t = setTimeout(() => {
+      setBlocked((prev) => {
+        if (frameLoaded) return prev;
+        void reportError("Embed blocked or timed out — the site refused to load in a frame.");
+        return true;
+      });
+    }, 9000);
+    return () => clearTimeout(t);
+  }, [game?.url, frameLoaded, reportError]);
+
 
   const saveProgress = useCallback(
     async (data: Record<string, unknown>) => {
@@ -118,11 +149,16 @@ function PlayGame() {
         );
       }
       if (d.__arcade === "save") void saveProgress(d.data ?? {});
-      if (d.__arcade === "error") setGameError(d.message ?? "script error");
+      if (d.__arcade === "error") {
+        const msg = d.message ?? "script error";
+        setGameError(msg);
+        void reportError(msg);
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [saveProgress]);
+  }, [saveProgress, reportError]);
+
 
 
   useEffect(() => {
@@ -178,9 +214,13 @@ function PlayGame() {
             ref={frameRef}
             title={game.name}
             src={game.url}
-            referrerPolicy="no-referrer"
-            allow="autoplay; fullscreen; gamepad; pointer-lock"
-            sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups"
+            onLoad={() => {
+              setFrameLoaded(true);
+              setBlocked(false);
+            }}
+            referrerPolicy="strict-origin-when-cross-origin"
+            allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write; encrypted-media"
+            sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads allow-presentation allow-popups-to-escape-sandbox"
             className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
           />
         ) : (
@@ -194,11 +234,26 @@ function PlayGame() {
           />
         )}
       </div>
+      {blocked && game.url && (
+        <div className="mt-3 rounded border border-destructive/60 bg-destructive/10 px-4 py-3 text-xs text-destructive">
+          This game’s host refuses to run inside an embed (it blocks framing), so it can stay black or
+          half-loaded here. Reported to the admin panel — you can still launch it in its own tab.
+          <a
+            href={game.url}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="ml-2 underline text-primary"
+          >
+            open game in a new tab
+          </a>
+        </div>
+      )}
       {gameError && (
         <p className="mt-3 text-xs text-destructive">
           Cartridge reported an error: {gameError} — this game may rely on external files that aren’t included.
         </p>
       )}
+
 
       <p className="mt-4 text-xs text-muted-foreground">
         Games can save your progress by calling <code className="text-primary">ArcadeSave(&#123;...&#125;)</code> and
