@@ -214,9 +214,13 @@ function PlayGame() {
             ref={frameRef}
             title={game.name}
             src={game.url}
-            referrerPolicy="no-referrer"
-            allow="autoplay; fullscreen; gamepad; pointer-lock"
-            sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups"
+            onLoad={() => {
+              setFrameLoaded(true);
+              setBlocked(false);
+            }}
+            referrerPolicy="strict-origin-when-cross-origin"
+            allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write; encrypted-media"
+            sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads allow-presentation allow-popups-to-escape-sandbox"
             className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
           />
         ) : (
@@ -230,11 +234,26 @@ function PlayGame() {
           />
         )}
       </div>
+      {blocked && game.url && (
+        <div className="mt-3 rounded border border-destructive/60 bg-destructive/10 px-4 py-3 text-xs text-destructive">
+          This game’s host refuses to run inside an embed (it blocks framing), so it can stay black or
+          half-loaded here. Reported to the admin panel — you can still launch it in its own tab.
+          <a
+            href={game.url}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="ml-2 underline text-primary"
+          >
+            open game in a new tab
+          </a>
+        </div>
+      )}
       {gameError && (
         <p className="mt-3 text-xs text-destructive">
           Cartridge reported an error: {gameError} — this game may rely on external files that aren’t included.
         </p>
       )}
+
 
       <p className="mt-4 text-xs text-muted-foreground">
         Games can save your progress by calling <code className="text-primary">ArcadeSave(&#123;...&#125;)</code> and
