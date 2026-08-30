@@ -12,12 +12,16 @@ export const Route = createFileRoute("/arcade/admin")({
 
 type Row = { id: string; username: string; banned: boolean; kicked_at: string | null; created_at: string };
 type Game = { id: string; name: string; description: string; created_at: string };
+type ErrRow = { id: string; game_id: string | null; message: string; created_at: string };
+type Suggestion = { id: string; username: string; title: string; note: string; created_at: string };
 
 function AdminPanel() {
   const { isAdmin, loading, profile } = useAuth();
   const [users, setUsers] = useState<Row[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [admins, setAdmins] = useState<string[]>([]);
+  const [errors, setErrors] = useState<ErrRow[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [status, setStatus] = useState<string | null>(null);
 
   const [name, setName] = useState("");
@@ -29,19 +33,31 @@ function AdminPanel() {
   const removeGame = useServerFn(deleteGameFn);
 
   const refresh = async () => {
-    const [{ data: p }, { data: g }, { data: r }] = await Promise.all([
+    const [{ data: p }, { data: g }, { data: r }, { data: e }, { data: s }] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at"),
       supabase.from("games").select("id,name,description,created_at").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id,role").eq("role", "admin"),
+      supabase
+        .from("game_errors")
+        .select("id,game_id,message,created_at")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("game_suggestions")
+        .select("id,username,title,note,created_at")
+        .order("created_at", { ascending: false }),
     ]);
     setUsers((p as Row[]) ?? []);
     setGames((g as Game[]) ?? []);
     setAdmins((r ?? []).map((x) => x.user_id));
+    setErrors((e as ErrRow[]) ?? []);
+    setSuggestions((s as Suggestion[]) ?? []);
   };
 
   useEffect(() => {
     if (isAdmin) void refresh();
   }, [isAdmin]);
+
 
   if (loading) return <p className="p-10 text-center text-sm text-muted-foreground">verifying clearance…</p>;
   if (!isAdmin) {
