@@ -18,6 +18,7 @@ import { Route as CampusLifeRouteImport } from './routes/campus-life'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ArcadeIndexRouteImport } from './routes/arcade.index'
 import { Route as ArcadeAdminRouteImport } from './routes/arcade.admin'
+import { Route as ArcadeSuggestRouteImport } from './routes/arcade.suggest'
 import { Route as ArcadePlayGameIdRouteImport } from './routes/arcade.play.$gameId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -65,6 +66,11 @@ const ArcadeAdminRoute = ArcadeAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => ArcadeRoute,
 } as any)
+const ArcadeSuggestRoute = ArcadeSuggestRouteImport.update({
+  id: '/suggest',
+  path: '/suggest',
+  getParentRoute: () => ArcadeRoute,
+} as any)
 const ArcadePlayGameIdRoute = ArcadePlayGameIdRouteImport.update({
   id: '/play/$gameId',
   path: '/play/$gameId',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/campus-life': typeof CampusLifeRoute
   '/portal': typeof PortalRoute
   '/arcade/admin': typeof ArcadeAdminRoute
+  '/arcade/suggest': typeof ArcadeSuggestRoute
   '/arcade/': typeof ArcadeIndexRoute
   '/arcade/play/$gameId': typeof ArcadePlayGameIdRoute
 }
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/campus-life': typeof CampusLifeRoute
   '/portal': typeof PortalRoute
   '/arcade/admin': typeof ArcadeAdminRoute
+  '/arcade/suggest': typeof ArcadeSuggestRoute
   '/arcade': typeof ArcadeIndexRoute
   '/arcade/play/$gameId': typeof ArcadePlayGameIdRoute
 }
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/campus-life': typeof CampusLifeRoute
   '/portal': typeof PortalRoute
   '/arcade/admin': typeof ArcadeAdminRoute
+  '/arcade/suggest': typeof ArcadeSuggestRoute
   '/arcade/': typeof ArcadeIndexRoute
   '/arcade/play/$gameId': typeof ArcadePlayGameIdRoute
 }
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/campus-life'
     | '/portal'
     | '/arcade/admin'
+    | '/arcade/suggest'
     | '/arcade/'
     | '/arcade/play/$gameId'
   fileRoutesByTo: FileRoutesByTo
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/campus-life'
     | '/portal'
     | '/arcade/admin'
+    | '/arcade/suggest'
     | '/arcade'
     | '/arcade/play/$gameId'
   id:
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/campus-life'
     | '/portal'
     | '/arcade/admin'
+    | '/arcade/suggest'
     | '/arcade/'
     | '/arcade/play/$gameId'
   fileRoutesById: FileRoutesById
@@ -220,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ArcadeAdminRouteImport
       parentRoute: typeof ArcadeRoute
     }
+    '/arcade/suggest': {
+      id: '/arcade/suggest'
+      path: '/suggest'
+      fullPath: '/arcade/suggest'
+      preLoaderRoute: typeof ArcadeSuggestRouteImport
+      parentRoute: typeof ArcadeRoute
+    }
     '/arcade/play/$gameId': {
       id: '/arcade/play/$gameId'
       path: '/play/$gameId'
@@ -232,12 +251,14 @@ declare module '@tanstack/react-router' {
 
 interface ArcadeRouteChildren {
   ArcadeAdminRoute: typeof ArcadeAdminRoute
+  ArcadeSuggestRoute: typeof ArcadeSuggestRoute
   ArcadeIndexRoute: typeof ArcadeIndexRoute
   ArcadePlayGameIdRoute: typeof ArcadePlayGameIdRoute
 }
 
 const ArcadeRouteChildren: ArcadeRouteChildren = {
   ArcadeAdminRoute: ArcadeAdminRoute,
+  ArcadeSuggestRoute: ArcadeSuggestRoute,
   ArcadeIndexRoute: ArcadeIndexRoute,
   ArcadePlayGameIdRoute: ArcadePlayGameIdRoute,
 }
