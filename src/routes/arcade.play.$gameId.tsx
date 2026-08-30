@@ -149,11 +149,16 @@ function PlayGame() {
         );
       }
       if (d.__arcade === "save") void saveProgress(d.data ?? {});
-      if (d.__arcade === "error") setGameError(d.message ?? "script error");
+      if (d.__arcade === "error") {
+        const msg = d.message ?? "script error";
+        setGameError(msg);
+        void reportError(msg);
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [saveProgress]);
+  }, [saveProgress, reportError]);
+
 
 
   useEffect(() => {
