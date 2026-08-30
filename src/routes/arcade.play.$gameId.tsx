@@ -79,10 +79,24 @@ function PlayGame() {
   const [saveState, setSaveState] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [gameError, setGameError] = useState<string | null>(null);
+  const [frameLoaded, setFrameLoaded] = useState(false);
+  const [blocked, setBlocked] = useState(false);
 
   const frameRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<Record<string, unknown>>({});
+
+  const reportError = useCallback(
+    async (message: string) => {
+      const { data: u } = await supabase.auth.getUser();
+      await supabase.from("game_errors").insert({
+        game_id: gameId,
+        user_id: u.user?.id ?? null,
+        message: message.slice(0, 500),
+      });
+    },
+    [gameId],
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -93,6 +107,23 @@ function PlayGame() {
     };
     void load();
   }, [gameId]);
+
+  // Some external sites refuse to be embedded (X-Frame-Options / CSP frame-ancestors).
+  // If nothing ever loads, surface a fallback instead of a permanently black frame.
+  useEffect(() => {
+    if (!game?.url) return;
+    setFrameLoaded(false);
+    setBlocked(false);
+    const t = setTimeout(() => {
+      setBlocked((prev) => {
+        if (frameLoaded) return prev;
+        void reportError("Embed blocked or timed out — the site refused to load in a frame.");
+        return true;
+      });
+    }, 9000);
+    return () => clearTimeout(t);
+  }, [game?.url, frameLoaded, reportError]);
+
 
   const saveProgress = useCallback(
     async (data: Record<string, unknown>) => {
