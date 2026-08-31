@@ -217,7 +217,8 @@ function AdminPanel() {
               className="mt-2 w-full rounded border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
             <p className="mt-1 text-[11px] text-muted-foreground">
-              A link takes priority over pasted code. Sites that block embedding won’t load.
+              A link takes priority over pasted code. Links are routed through the arcade’s embed
+              relay, so most hosts load — a few may still refuse or misbehave.
             </p>
           </div>
           <button

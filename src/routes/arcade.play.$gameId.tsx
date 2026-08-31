@@ -2,74 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Maximize, Minimize } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ARCADE_BRIDGE } from "@/lib/arcade-bridge";
 
 export const Route = createFileRoute("/arcade/play/$gameId")({
   ssr: false,
   component: PlayGame,
 });
-
-const BRIDGE = `<script>
-(function(){
-  // Sandboxed frames have an opaque origin, so touching localStorage throws and
-  // kills most games on their first line. Swap in an in-memory shim up front.
-  function shim(){
-    var m = {};
-    return {
-      getItem: function(k){ return Object.prototype.hasOwnProperty.call(m, k) ? m[k] : null; },
-      setItem: function(k, v){ m[k] = String(v); },
-      removeItem: function(k){ delete m[k]; },
-      clear: function(){ m = {}; },
-      key: function(i){ return Object.keys(m)[i] != null ? Object.keys(m)[i] : null; },
-      get length(){ return Object.keys(m).length; }
-    };
-  }
-  ['localStorage','sessionStorage'].forEach(function(name){
-    var ok = false;
-    try { window[name].setItem('__probe','1'); window[name].removeItem('__probe'); ok = true; } catch (e) {}
-    if (!ok) { try { Object.defineProperty(window, name, { value: shim(), configurable: true }); } catch (e) {} }
-  });
-  // Gamepad access can be blocked by permissions policy; never let it throw.
-  try {
-    var origPads = navigator.getGamepads && navigator.getGamepads.bind(navigator);
-    navigator.getGamepads = function(){
-      try { return origPads ? origPads() : []; } catch (e) { return []; }
-    };
-  } catch (e) {}
-
-  // Games that call these in a sandbox throw and stop executing.
-  ['requestFullscreen','webkitRequestFullscreen'].forEach(function(fn){
-    try {
-      var proto = Element.prototype;
-      var orig = proto[fn];
-      if (orig) proto[fn] = function(){ try { return orig.apply(this, arguments); } catch (e) { return Promise.resolve(); } };
-    } catch (e) {}
-  });
-
-  var pending = [];
-  var resolved = null;
-  window.ArcadeSave = function(data){ parent.postMessage({__arcade:'save', data: data}, '*'); };
-  window.ArcadeLoad = function(){
-    if (resolved) return Promise.resolve(resolved);
-    return new Promise(function(res){ pending.push(res); });
-  };
-  window.addEventListener('message', function(e){
-    if (e.data && e.data.__arcadeHost === 'progress') {
-      resolved = e.data.data || {};
-      pending.splice(0).forEach(function(r){ r(resolved); });
-    }
-  });
-  window.addEventListener('error', function(e){
-    parent.postMessage({__arcade:'error', message: (e && e.message) || 'script error'}, '*');
-  });
-  window.addEventListener('unhandledrejection', function(e){
-    var r = e && e.reason;
-    parent.postMessage({__arcade:'error', message: (r && r.message) || String(r)}, '*');
-  });
-  parent.postMessage({__arcade:'ready'}, '*');
-})();
-</script>
-<style>html,body{margin:0;height:100%;background:#000;color:#fff;overflow:hidden}canvas{max-width:100%}</style>`;
-
 
 type Game = { id: string; name: string; description: string; html: string; url: string | null };
 
@@ -213,21 +151,21 @@ function PlayGame() {
           <iframe
             ref={frameRef}
             title={game.name}
-            src={game.url}
+            src={`/api/public/embed/${game.id}`}
             onLoad={() => {
               setFrameLoaded(true);
               setBlocked(false);
             }}
             referrerPolicy="strict-origin-when-cross-origin"
             allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write; encrypted-media"
-            sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads allow-presentation allow-popups-to-escape-sandbox"
+            sandbox="allow-scripts allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads allow-presentation allow-popups-to-escape-sandbox"
             className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
           />
         ) : (
           <iframe
             ref={frameRef}
             title={game.name}
-            srcDoc={BRIDGE + game.html}
+            srcDoc={ARCADE_BRIDGE + game.html}
             allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write"
             sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads"
             className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
