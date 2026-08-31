@@ -20,6 +20,7 @@ import { Route as ArcadeIndexRouteImport } from './routes/arcade.index'
 import { Route as ArcadeAdminRouteImport } from './routes/arcade.admin'
 import { Route as ArcadeSuggestRouteImport } from './routes/arcade.suggest'
 import { Route as ArcadePlayGameIdRouteImport } from './routes/arcade.play.$gameId'
+import { Route as ApiPublicEmbedGameIdRouteImport } from './routes/api/public/embed/$gameId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -76,6 +77,11 @@ const ArcadePlayGameIdRoute = ArcadePlayGameIdRouteImport.update({
   path: '/play/$gameId',
   getParentRoute: () => ArcadeRoute,
 } as any)
+const ApiPublicEmbedGameIdRoute = ApiPublicEmbedGameIdRouteImport.update({
+  id: '/api/public/embed/$gameId',
+  path: '/api/public/embed/$gameId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/arcade/suggest': typeof ArcadeSuggestRoute
   '/arcade/': typeof ArcadeIndexRoute
   '/arcade/play/$gameId': typeof ArcadePlayGameIdRoute
+  '/api/public/embed/$gameId': typeof ApiPublicEmbedGameIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/arcade/suggest': typeof ArcadeSuggestRoute
   '/arcade': typeof ArcadeIndexRoute
   '/arcade/play/$gameId': typeof ArcadePlayGameIdRoute
+  '/api/public/embed/$gameId': typeof ApiPublicEmbedGameIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/arcade/suggest': typeof ArcadeSuggestRoute
   '/arcade/': typeof ArcadeIndexRoute
   '/arcade/play/$gameId': typeof ArcadePlayGameIdRoute
+  '/api/public/embed/$gameId': typeof ApiPublicEmbedGameIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/arcade/suggest'
     | '/arcade/'
     | '/arcade/play/$gameId'
+    | '/api/public/embed/$gameId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/arcade/suggest'
     | '/arcade'
     | '/arcade/play/$gameId'
+    | '/api/public/embed/$gameId'
   id:
     | '__root__'
     | '/'
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/arcade/suggest'
     | '/arcade/'
     | '/arcade/play/$gameId'
+    | '/api/public/embed/$gameId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -165,6 +177,7 @@ export interface RootRouteChildren {
   ArcadeRoute: typeof ArcadeRouteWithChildren
   CampusLifeRoute: typeof CampusLifeRoute
   PortalRoute: typeof PortalRoute
+  ApiPublicEmbedGameIdRoute: typeof ApiPublicEmbedGameIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ArcadePlayGameIdRouteImport
       parentRoute: typeof ArcadeRoute
     }
+    '/api/public/embed/$gameId': {
+      id: '/api/public/embed/$gameId'
+      path: '/api/public/embed/$gameId'
+      fullPath: '/api/public/embed/$gameId'
+      preLoaderRoute: typeof ApiPublicEmbedGameIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -274,6 +294,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArcadeRoute: ArcadeRouteWithChildren,
   CampusLifeRoute: CampusLifeRoute,
   PortalRoute: PortalRoute,
+  ApiPublicEmbedGameIdRoute: ApiPublicEmbedGameIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

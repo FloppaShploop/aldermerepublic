@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Maximize, Minimize } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ARCADE_BRIDGE } from "@/lib/arcade-bridge";
 
 export const Route = createFileRoute("/arcade/play/$gameId")({
   ssr: false,
@@ -213,21 +214,21 @@ function PlayGame() {
           <iframe
             ref={frameRef}
             title={game.name}
-            src={game.url}
+            src={`/api/public/embed/${game.id}`}
             onLoad={() => {
               setFrameLoaded(true);
               setBlocked(false);
             }}
             referrerPolicy="strict-origin-when-cross-origin"
             allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write; encrypted-media"
-            sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads allow-presentation allow-popups-to-escape-sandbox"
+            sandbox="allow-scripts allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads allow-presentation allow-popups-to-escape-sandbox"
             className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
           />
         ) : (
           <iframe
             ref={frameRef}
             title={game.name}
-            srcDoc={BRIDGE + game.html}
+            srcDoc={ARCADE_BRIDGE + game.html}
             allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write"
             sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads"
             className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}
