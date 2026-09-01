@@ -17,12 +17,13 @@ function PlayGame() {
   const [saveState, setSaveState] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [gameError, setGameError] = useState<string | null>(null);
-  const [frameLoaded, setFrameLoaded] = useState(false);
   const [blocked, setBlocked] = useState(false);
 
   const frameRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<Record<string, unknown>>({});
+  const aliveRef = useRef(false);
+
 
   const reportError = useCallback(
     async (message: string) => {
@@ -48,19 +49,20 @@ function PlayGame() {
 
   // Some external sites refuse to be embedded (X-Frame-Options / CSP frame-ancestors).
   // If nothing ever loads, surface a fallback instead of a permanently black frame.
+  // Heavy games can take a long time to fire `load` (wasm, audio packs, trackers),
+  // so any sign of life from the bridge counts as loaded.
   useEffect(() => {
     if (!game?.url) return;
-    setFrameLoaded(false);
+    aliveRef.current = false;
     setBlocked(false);
     const t = setTimeout(() => {
-      setBlocked((prev) => {
-        if (frameLoaded) return prev;
-        void reportError("Embed blocked or timed out — the site refused to load in a frame.");
-        return true;
-      });
-    }, 9000);
+      if (aliveRef.current) return;
+      void reportError("Embed blocked or timed out — the site refused to load in a frame.");
+      setBlocked(true);
+    }, 30000);
     return () => clearTimeout(t);
-  }, [game?.url, frameLoaded, reportError]);
+  }, [game?.url, reportError]);
+
 
 
   const saveProgress = useCallback(
@@ -81,11 +83,14 @@ function PlayGame() {
       const d = e.data as { __arcade?: string; data?: Record<string, unknown>; message?: string };
       if (!d || !d.__arcade) return;
       if (d.__arcade === "ready") {
+        aliveRef.current = true;
+        setBlocked(false);
         frameRef.current?.contentWindow?.postMessage(
           { __arcadeHost: "progress", data: progressRef.current },
           "*",
         );
       }
+
       if (d.__arcade === "save") void saveProgress(d.data ?? {});
       if (d.__arcade === "error") {
         const msg = d.message ?? "script error";
@@ -153,9 +158,10 @@ function PlayGame() {
             title={game.name}
             src={`/api/public/embed/${game.id}`}
             onLoad={() => {
-              setFrameLoaded(true);
+              aliveRef.current = true;
               setBlocked(false);
             }}
+
             referrerPolicy="strict-origin-when-cross-origin"
             allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write; encrypted-media"
             sandbox="allow-scripts allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads allow-presentation allow-popups-to-escape-sandbox"
