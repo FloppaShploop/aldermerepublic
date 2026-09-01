@@ -85,11 +85,14 @@ function PlayGame() {
       const d = e.data as { __arcade?: string; data?: Record<string, unknown>; message?: string };
       if (!d || !d.__arcade) return;
       if (d.__arcade === "ready") {
+        aliveRef.current = true;
+        setBlocked(false);
         frameRef.current?.contentWindow?.postMessage(
           { __arcadeHost: "progress", data: progressRef.current },
           "*",
         );
       }
+
       if (d.__arcade === "save") void saveProgress(d.data ?? {});
       if (d.__arcade === "error") {
         const msg = d.message ?? "script error";
