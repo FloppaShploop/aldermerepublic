@@ -48,19 +48,21 @@ function PlayGame() {
 
   // Some external sites refuse to be embedded (X-Frame-Options / CSP frame-ancestors).
   // If nothing ever loads, surface a fallback instead of a permanently black frame.
+  // Heavy games can take a long time to fire `load` (wasm, audio packs, trackers),
+  // so any sign of life from the bridge counts as loaded.
   useEffect(() => {
     if (!game?.url) return;
+    aliveRef.current = false;
     setFrameLoaded(false);
     setBlocked(false);
     const t = setTimeout(() => {
-      setBlocked((prev) => {
-        if (frameLoaded) return prev;
-        void reportError("Embed blocked or timed out — the site refused to load in a frame.");
-        return true;
-      });
-    }, 9000);
+      if (aliveRef.current) return;
+      void reportError("Embed blocked or timed out — the site refused to load in a frame.");
+      setBlocked(true);
+    }, 30000);
     return () => clearTimeout(t);
-  }, [game?.url, frameLoaded, reportError]);
+  }, [game?.url, reportError]);
+
 
 
   const saveProgress = useCallback(
