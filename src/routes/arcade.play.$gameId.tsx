@@ -160,9 +160,11 @@ function PlayGame() {
             title={game.name}
             src={`/api/public/embed/${game.id}`}
             onLoad={() => {
+              aliveRef.current = true;
               setFrameLoaded(true);
               setBlocked(false);
             }}
+
             referrerPolicy="strict-origin-when-cross-origin"
             allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write; encrypted-media"
             sandbox="allow-scripts allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads allow-presentation allow-popups-to-escape-sandbox"
