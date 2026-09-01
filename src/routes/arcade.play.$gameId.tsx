@@ -23,6 +23,8 @@ function PlayGame() {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<Record<string, unknown>>({});
+  const aliveRef = useRef(false);
+
 
   const reportError = useCallback(
     async (message: string) => {
