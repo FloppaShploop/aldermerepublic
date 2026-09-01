@@ -102,8 +102,14 @@ export const Route = createFileRoute("/api/public/embed/$gameId")({
         outHeaders.set("x-content-type-options", "nosniff");
 
         if (!upstream.ok) {
+          if (upstream.status === 429 || upstream.status === 403) {
+            return failPage(
+              `the game host blocked this server (HTTP ${upstream.status}). Sites like Google rate-limit automated requests and cannot be embedded — use a game link that allows it.`,
+            );
+          }
           return failPage(`the game host answered ${upstream.status}`);
         }
+
 
         if (!/text\/html|application\/xhtml/i.test(contentType)) {
           // Non-HTML payload (rare): pass bytes through with safe headers.
