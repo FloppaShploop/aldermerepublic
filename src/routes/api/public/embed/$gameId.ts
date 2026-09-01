@@ -39,11 +39,12 @@ function injectIntoHtml(html: string, finalUrl: string, gameId: string): string 
 (function(){
   var gameId = ${JSON.stringify(gameId)};
   var sourceOrigin = ${JSON.stringify(new URL(finalUrl).origin)};
+  var relayOrigin = window.location.origin;
   function relayUrl(value){
     try {
       var target = new URL(value, document.baseURI);
       if (target.origin !== sourceOrigin) return null;
-      return '/api/public/embed/' + encodeURIComponent(gameId) + '?url=' + encodeURIComponent(target.href);
+      return relayOrigin + '/api/public/embed/' + encodeURIComponent(gameId) + '?url=' + encodeURIComponent(target.href);
     } catch (e) { return null; }
   }
   document.addEventListener('click', function(event){
