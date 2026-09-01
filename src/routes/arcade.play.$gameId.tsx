@@ -17,7 +17,6 @@ function PlayGame() {
   const [saveState, setSaveState] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [gameError, setGameError] = useState<string | null>(null);
-  const [frameLoaded, setFrameLoaded] = useState(false);
   const [blocked, setBlocked] = useState(false);
 
   const frameRef = useRef<HTMLIFrameElement>(null);
@@ -55,7 +54,6 @@ function PlayGame() {
   useEffect(() => {
     if (!game?.url) return;
     aliveRef.current = false;
-    setFrameLoaded(false);
     setBlocked(false);
     const t = setTimeout(() => {
       if (aliveRef.current) return;
@@ -161,7 +159,6 @@ function PlayGame() {
             src={`/api/public/embed/${game.id}`}
             onLoad={() => {
               aliveRef.current = true;
-              setFrameLoaded(true);
               setBlocked(false);
             }}
 
