@@ -33,9 +33,41 @@ function failPage(message: string): Response {
   });
 }
 
-function injectIntoHtml(html: string, finalUrl: string): string {
+function injectIntoHtml(html: string, finalUrl: string, gameId: string): string {
   const base = `<base href="${finalUrl.replace(/"/g, "&quot;")}">`;
-  const injection = base + ARCADE_BRIDGE;
+  const relayNavigation = `<script>
+(function(){
+  var gameId = ${JSON.stringify(gameId)};
+  var sourceOrigin = ${JSON.stringify(new URL(finalUrl).origin)};
+  function relayUrl(value){
+    try {
+      var target = new URL(value, document.baseURI);
+      if (target.origin !== sourceOrigin) return null;
+      return '/api/public/embed/' + encodeURIComponent(gameId) + '?url=' + encodeURIComponent(target.href);
+    } catch (e) { return null; }
+  }
+  document.addEventListener('click', function(event){
+    var node = event.target;
+    var anchor = node && node.closest ? node.closest('a[href]') : null;
+    if (!anchor || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    var next = relayUrl(anchor.href);
+    if (!next) return;
+    event.preventDefault();
+    location.href = next;
+  }, true);
+  document.addEventListener('submit', function(event){
+    var form = event.target;
+    if (!form || String(form.method || 'get').toLowerCase() !== 'get') return;
+    var target = new URL(form.action || location.href, document.baseURI);
+    if (target.origin !== sourceOrigin) return;
+    event.preventDefault();
+    var values = new URLSearchParams(new FormData(form));
+    values.forEach(function(value, key){ target.searchParams.set(key, value); });
+    location.href = relayUrl(target.href);
+  }, true);
+})();
+</scr` + `ipt>`;
+  const injection = base + ARCADE_BRIDGE + relayNavigation;
   // Drop any in-page CSP meta tags that would re-block framing/scripts.
   const cleaned = html.replace(/<meta[^>]+http-equiv=["']?content-security-policy["']?[^>]*>/gi, "");
   if (/<head[^>]*>/i.test(cleaned)) {
@@ -50,7 +82,7 @@ function injectIntoHtml(html: string, finalUrl: string): string {
 export const Route = createFileRoute("/api/public/embed/$gameId")({
   server: {
     handlers: {
-      GET: async ({ params }) => {
+      GET: async ({ params, request }) => {
         const { gameId } = params;
 
         // Look up the admin-approved URL for this game. Only URLs that exist in
@@ -68,8 +100,11 @@ export const Route = createFileRoute("/api/public/embed/$gameId")({
 
         let target: URL;
         try {
-          target = new URL(game.url);
+          const approved = new URL(game.url);
+          const requestedUrl = new URL(request.url).searchParams.get("url");
+          target = requestedUrl ? new URL(requestedUrl) : approved;
           if (target.protocol !== "https:" && target.protocol !== "http:") throw new Error("bad scheme");
+          if (target.origin !== approved.origin) throw new Error("unapproved host");
         } catch {
           return failPage("the stored link is not a valid URL");
         }
@@ -124,7 +159,7 @@ export const Route = createFileRoute("/api/public/embed/$gameId")({
 
         // Base points at the final post-redirect URL so relative assets resolve
         // against the original host.
-        html = injectIntoHtml(html, upstream.url || target.toString());
+        html = injectIntoHtml(html, upstream.url || target.toString(), gameId);
 
         outHeaders.set("content-type", "text/html; charset=utf-8");
         // Defense in depth: keep the relayed document in an opaque-origin sandbox
