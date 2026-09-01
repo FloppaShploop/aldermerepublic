@@ -33,13 +33,13 @@ function failPage(message: string): Response {
   });
 }
 
-function injectIntoHtml(html: string, finalUrl: string, gameId: string): string {
+function injectIntoHtml(html: string, finalUrl: string, gameId: string, relayOrigin: string): string {
   const base = `<base href="${finalUrl.replace(/"/g, "&quot;")}">`;
   const relayNavigation = `<script>
 (function(){
   var gameId = ${JSON.stringify(gameId)};
   var sourceOrigin = ${JSON.stringify(new URL(finalUrl).origin)};
-  var relayOrigin = window.location.origin;
+  var relayOrigin = ${JSON.stringify(relayOrigin)};
   function relayUrl(value){
     try {
       var target = new URL(value, document.baseURI);
@@ -160,7 +160,12 @@ export const Route = createFileRoute("/api/public/embed/$gameId")({
 
         // Base points at the final post-redirect URL so relative assets resolve
         // against the original host.
-        html = injectIntoHtml(html, upstream.url || target.toString(), gameId);
+        html = injectIntoHtml(
+          html,
+          upstream.url || target.toString(),
+          gameId,
+          new URL(request.url).origin,
+        );
 
         outHeaders.set("content-type", "text/html; charset=utf-8");
         // Defense in depth: keep the relayed document in an opaque-origin sandbox
