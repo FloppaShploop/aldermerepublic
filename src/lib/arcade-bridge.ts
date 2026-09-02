@@ -51,12 +51,22 @@ export const ARCADE_BRIDGE = `<script>
       pending.splice(0).forEach(function(r){ r(resolved); });
     }
   });
+  // Cross-origin scripts report a censored "Script error." with no detail.
+  // Those are noise (usually a third-party asset), so never surface them.
+  function useless(msg){
+    return !msg || /^\\s*script error\\.?\\s*$/i.test(msg) || msg === 'undefined' || msg === 'null';
+  }
   window.addEventListener('error', function(e){
-    parent.postMessage({__arcade:'error', message: (e && e.message) || 'script error'}, '*');
+    var msg = e && e.message;
+    if (useless(msg)) return;
+    if (e && e.filename) msg += ' (' + e.filename + ':' + (e.lineno || 0) + ')';
+    parent.postMessage({__arcade:'error', message: msg}, '*');
   });
   window.addEventListener('unhandledrejection', function(e){
     var r = e && e.reason;
-    parent.postMessage({__arcade:'error', message: (r && r.message) || String(r)}, '*');
+    var msg = (r && r.message) || String(r);
+    if (useless(msg)) return;
+    parent.postMessage({__arcade:'error', message: msg}, '*');
   });
   parent.postMessage({__arcade:'ready'}, '*');
 })();
