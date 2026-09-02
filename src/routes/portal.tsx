@@ -6,13 +6,13 @@ import { PORTAL_EMAIL, PORTAL_PASSWORD, unlockPortal } from "@/lib/portalGate";
 export const Route = createFileRoute("/portal")({
   head: () => ({
     meta: [
-      { title: "Student Portal — Wexford University" },
+      { title: "Student Portal — Aldermere University" },
       {
         name: "description",
-        content: "Sign in to the Wexford Student Portal for registration, grades, housing and campus services.",
+        content: "Sign in to the Aldermere Student Portal for registration, grades, housing and campus services.",
       },
-      { property: "og:title", content: "Student Portal — Wexford University" },
-      { property: "og:description", content: "Secure sign-in for Wexford students and staff." },
+      { property: "og:title", content: "Student Portal — Aldermere University" },
+      { property: "og:description", content: "Secure sign-in for Aldermere students and staff." },
     ],
   }),
   component: Portal,
@@ -30,7 +30,7 @@ function Portal() {
       unlockPortal();
       void navigate({ to: "/access" });
     } else {
-      setError("The credentials you entered do not match a Wexford account.");
+      setError("The credentials you entered do not match an Aldermere account.");
     }
   };
 
@@ -39,10 +39,10 @@ function Portal() {
       <PageHeader kicker="Secure Sign-In" title="Student Portal" />
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 md:grid-cols-[1fr_380px]">
         <div>
-          <h2 className="text-2xl">Wexford ID sign-in</h2>
+          <h2 className="text-2xl">Aldermere ID sign-in</h2>
           <p className="mt-3 max-w-xl text-muted-foreground">
             Use your university email address and password. Sessions expire after 30 minutes of
-            inactivity. Never share your Wexford ID credentials with anyone, including IT staff.
+            inactivity. Never share your Aldermere ID credentials with anyone, including IT staff.
           </p>
           <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
             <li>· Course registration and add/drop</li>
@@ -61,7 +61,7 @@ function Portal() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="mt-2 w-full rounded-sm border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-            placeholder="name@wexford.edu"
+            placeholder="name@aldermere.edu"
             required
           />
           <label className="mt-4 block text-sm text-foreground" htmlFor="password">
