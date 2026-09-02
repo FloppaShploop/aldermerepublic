@@ -5,13 +5,13 @@ import campus from "@/assets/campus.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Wexford University — Learning Without Limits" },
+      { title: "Aldermere University — Learning Without Limits" },
       {
         name: "description",
         content:
-          "Wexford University is a private research university offering 92 undergraduate programs, world-class faculty and a 1,400-acre New England campus.",
+          "Aldermere University is a private research university offering 92 undergraduate programs, world-class faculty and a 1,400-acre New England campus.",
       },
-      { property: "og:title", content: "Wexford University — Learning Without Limits" },
+      { property: "og:title", content: "Aldermere University — Learning Without Limits" },
       {
         property: "og:description",
         content: "A private research university in New England. Explore academics, admissions and campus life.",
@@ -30,7 +30,7 @@ const stats = [
 
 const news = [
   {
-    t: "Wexford physicists map a new class of quantum material",
+    t: "Aldermere physicists map a new class of quantum material",
     d: "A five-year study out of the Halloran Lab could reshape low-temperature computing.",
   },
   {
@@ -49,7 +49,7 @@ function Home() {
       <section className="relative">
         <img
           src={campus}
-          alt="Ivy-covered Wexford University hall overlooking the main quad"
+          alt="Ivy-covered Aldermere University hall overlooking the main quad"
           width={1600}
           height={900}
           className="h-[420px] w-full object-cover"
@@ -61,14 +61,14 @@ function Home() {
               Veritas in Studio. Learning without limits.
             </h1>
             <p className="mt-4 max-w-xl text-background/85">
-              For more than two centuries, Wexford has brought together curious minds to ask harder
+              For more than two centuries, Aldermere has brought together curious minds to ask harder
               questions and build better answers.
             </p>
             <Link
               to="/admissions"
               className="mt-6 inline-flex rounded-sm bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
-              Apply to Wexford
+              Apply to Aldermere
             </Link>
           </div>
         </div>

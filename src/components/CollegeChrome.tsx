@@ -16,10 +16,10 @@ export function CollegeChrome({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <Link to="/" className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-sm border border-primary-foreground/40 font-serif-display text-lg">
-              W
+              A
             </span>
             <span className="leading-tight">
-              <span className="block font-serif-display text-xl">Wexford University</span>
+              <span className="block font-serif-display text-xl">Aldermere University</span>
               <span className="block text-xs uppercase tracking-[0.22em] opacity-75">
                 Founded 1782 · New England
               </span>
@@ -43,8 +43,8 @@ export function CollegeChrome({ children }: { children: ReactNode }) {
       <footer className="mt-20 border-t border-border bg-secondary">
         <div className="mx-auto grid max-w-6xl gap-6 px-5 py-10 text-sm text-muted-foreground sm:grid-cols-3">
           <div>
-            <p className="font-serif-display text-base text-foreground">Wexford University</p>
-            <p className="mt-2">14 Harrow Yard, Wexford, MA 02138</p>
+            <p className="font-serif-display text-base text-foreground">Aldermere University</p>
+            <p className="mt-2">14 Harrow Yard, Aldermere, MA 02138</p>
           </div>
           <div>
             <p className="text-foreground">Quick Links</p>
@@ -52,7 +52,7 @@ export function CollegeChrome({ children }: { children: ReactNode }) {
           </div>
           <div>
             <p className="text-foreground">Contact</p>
-            <p className="mt-2">(617) 555-0182 · info@wexford.edu</p>
+            <p className="mt-2">(617) 555-0182 · info@aldermere.edu</p>
           </div>
         </div>
       </footer>
