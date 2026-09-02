@@ -93,7 +93,10 @@ function PlayGame() {
 
       if (d.__arcade === "save") void saveProgress(d.data ?? {});
       if (d.__arcade === "error") {
-        const msg = d.message ?? "script error";
+        const msg = (d.message ?? "").trim();
+        // Ignore censored cross-origin "Script error." reports — they carry no
+        // detail and usually don't stop the game from running.
+        if (!msg || /^script error\.?$/i.test(msg)) return;
         setGameError(msg);
         void reportError(msg);
       }
