@@ -28,11 +28,12 @@ function CampusLife() {
   return (
     <CollegeChrome>
       <PageHeader kicker="Student Experience" title="Campus Life" />
-      <div className="mx-auto grid max-w-6xl gap-6 px-5 py-12 md:grid-cols-2">
+      <div className="mx-auto grid max-w-7xl gap-8 px-6 py-16 md:grid-cols-2 lg:px-16">
         {items.map(([t, d]) => (
-          <div key={t} className="rounded-sm border border-border bg-card p-6">
-            <h2 className="text-lg">{t}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{d}</p>
+          <div key={t} className="border border-border bg-card p-8 transition-colors hover:border-accent">
+            <span className="mb-4 block h-1 w-10 bg-accent" />
+            <h2 className="text-xl">{t}</h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{d}</p>
           </div>
         ))}
       </div>

@@ -30,16 +30,17 @@ function Academics() {
   return (
     <CollegeChrome>
       <PageHeader kicker="Schools & Programs" title="Academics" />
-      <div className="mx-auto max-w-6xl px-5 py-12">
-        <p className="max-w-3xl text-muted-foreground">
+      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-16">
+        <p className="max-w-3xl text-lg leading-relaxed text-muted-foreground">
           Aldermere's eleven schools share a single faculty, so an undergraduate in the College can
           study alongside doctoral researchers from their first semester.
         </p>
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
+        <div className="mt-12 grid gap-8 md:grid-cols-2">
           {schools.map(([name, desc]) => (
-            <div key={name} className="rounded-sm border border-border bg-card p-6">
-              <h2 className="text-lg">{name}</h2>
-              <p className="mt-2 text-sm text-muted-foreground">{desc}</p>
+            <div key={name} className="border border-border bg-card p-8 transition-colors hover:border-accent">
+              <span className="mb-4 block h-1 w-10 bg-accent" />
+              <h2 className="text-xl">{name}</h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{desc}</p>
             </div>
           ))}
         </div>

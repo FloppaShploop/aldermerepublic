@@ -37,21 +37,22 @@ function Portal() {
   return (
     <CollegeChrome>
       <PageHeader kicker="Secure Sign-In" title="Student Portal" />
-      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 md:grid-cols-[1fr_380px]">
+      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 md:grid-cols-[1fr_400px] lg:px-16">
         <div>
-          <h2 className="text-2xl">Aldermere ID sign-in</h2>
-          <p className="mt-3 max-w-xl text-muted-foreground">
+          <h2 className="text-3xl">Aldermere ID sign-in</h2>
+          <p className="mt-4 max-w-xl leading-relaxed text-muted-foreground">
             Use your university email address and password. Sessions expire after 30 minutes of
             inactivity. Never share your Aldermere ID credentials with anyone, including IT staff.
           </p>
-          <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
+          <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
             <li>· Course registration and add/drop</li>
             <li>· Grades, transcripts and degree audit</li>
             <li>· Housing, dining plans and student billing</li>
             <li>· Campus network and lab resources</li>
           </ul>
         </div>
-        <form onSubmit={submit} className="rounded-sm border border-border bg-card p-6">
+        <form onSubmit={submit} className="h-fit border border-border bg-card p-8">
+          <span className="mb-4 block h-1 w-10 bg-accent" />
           <label className="block text-sm text-foreground" htmlFor="email">
             University email
           </label>
