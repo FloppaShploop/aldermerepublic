@@ -28,27 +28,28 @@ function Admissions() {
   return (
     <CollegeChrome>
       <PageHeader kicker="Undergraduate" title="Admissions & Aid" />
-      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 md:grid-cols-2">
+      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-2 lg:px-16">
         <div>
-          <h2 className="text-2xl">Applying to Aldermere</h2>
-          <p className="mt-3 text-muted-foreground">
+          <h2 className="text-3xl">Applying to Aldermere</h2>
+          <p className="mt-4 leading-relaxed text-muted-foreground">
             We read every application in full. There is no minimum test score and no application
             fee. Admission is need-blind for all applicants, and Aldermere meets 100% of demonstrated
             financial need with grant aid rather than loans.
           </p>
-          <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
+          <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
             <li>· Common Application or Aldermere Application</li>
             <li>· School report and official transcript</li>
             <li>· Two teacher recommendations</li>
             <li>· Optional standardized testing</li>
           </ul>
         </div>
-        <div className="rounded-sm border border-border bg-card p-6">
-          <h2 className="text-lg">Key dates</h2>
+        <div className="border border-border bg-card p-8">
+          <span className="mb-4 block h-1 w-10 bg-accent" />
+          <h2 className="text-xl">Key dates</h2>
           <dl className="mt-4 divide-y divide-border">
             {dates.map(([d, l]) => (
               <div key={l} className="flex justify-between py-3 text-sm">
-                <dt className="text-foreground">{d}</dt>
+                <dt className="font-semibold text-foreground">{d}</dt>
                 <dd className="text-muted-foreground">{l}</dd>
               </div>
             ))}
