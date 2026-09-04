@@ -128,7 +128,10 @@ function injectIntoHtml(html: string, finalUrl: string, gameId: string, relayOri
 </scr` + `ipt>`;
   const injection = base + ARCADE_BRIDGE + relayNavigation;
   // Drop any in-page CSP meta tags that would re-block framing/scripts.
-  const cleaned = html.replace(/<meta[^>]+http-equiv=["']?content-security-policy["']?[^>]*>/gi, "");
+  let cleaned = html.replace(/<meta[^>]+http-equiv=["']?content-security-policy["']?[^>]*>/gi, "");
+  // Rewrite markup-level asset references up front: a <script src> found during
+  // parsing starts downloading before any observer callback can patch it.
+  cleaned = rewriteHtmlAssets(cleaned, finalUrl, gameId, relayOrigin);
   if (/<head[^>]*>/i.test(cleaned)) {
     return cleaned.replace(/<head[^>]*>/i, (m) => m + injection);
   }
