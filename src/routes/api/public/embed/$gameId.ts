@@ -66,6 +66,64 @@ function injectIntoHtml(html: string, finalUrl: string, gameId: string, relayOri
     values.forEach(function(value, key){ target.searchParams.set(key, value); });
     location.href = relayUrl(target.href);
   }, true);
+  // Games load their own scripts, art and audio from the source host. Inside a
+  // sandboxed frame those requests are cross-origin and often blocked, which is
+  // what "cartridge reported an error" really means. Route every same-host
+  // request back through this relay so it is same-origin and always allowed.
+  function proxied(value){
+    if (typeof value !== 'string') return value;
+    if (/^(data:|blob:|javascript:|about:|#)/i.test(value)) return value;
+    if (value.indexOf(relayOrigin + '/api/public/embed/') === 0) return value;
+    var next = relayUrl(value);
+    return next || value;
+  }
+  window.__arcadeProxy = proxied;
+
+  var origFetch = window.fetch;
+  if (origFetch) {
+    window.fetch = function(input, init){
+      try {
+        if (typeof input === 'string') input = proxied(input);
+        else if (input && input.url) input = new Request(proxied(input.url), input);
+      } catch (e) {}
+      return origFetch.call(this, input, init);
+    };
+  }
+  var origOpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function(method, url){
+    var args = Array.prototype.slice.call(arguments);
+    try { args[1] = proxied(url); } catch (e) {}
+    return origOpen.apply(this, args);
+  };
+
+  var ATTRS = { IMG: 'src', SCRIPT: 'src', LINK: 'href', AUDIO: 'src', VIDEO: 'src', SOURCE: 'src', IFRAME: 'src', TRACK: 'src', EMBED: 'src', OBJECT: 'data', USE: 'href' };
+  function fixNode(node){
+    if (!node || node.nodeType !== 1) return;
+    var attr = ATTRS[node.tagName];
+    if (attr) {
+      var raw = node.getAttribute(attr);
+      if (raw) {
+        var next = proxied(raw);
+        if (next !== raw) node.setAttribute(attr, next);
+      }
+    }
+    if (node.getAttribute && node.getAttribute('srcset')) {
+      node.setAttribute('srcset', node.getAttribute('srcset').split(',').map(function(part){
+        var bits = part.trim().split(/\\s+/);
+        bits[0] = proxied(bits[0]);
+        return bits.join(' ');
+      }).join(', '));
+    }
+    if (node.children) for (var i = 0; i < node.children.length; i++) fixNode(node.children[i]);
+  }
+  try {
+    new MutationObserver(function(records){
+      records.forEach(function(r){
+        for (var i = 0; i < r.addedNodes.length; i++) fixNode(r.addedNodes[i]);
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  } catch (e) {}
+  document.addEventListener('DOMContentLoaded', function(){ fixNode(document.documentElement); });
 })();
 </scr` + `ipt>`;
   const injection = base + ARCADE_BRIDGE + relayNavigation;
