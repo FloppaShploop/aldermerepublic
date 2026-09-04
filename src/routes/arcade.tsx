@@ -8,13 +8,13 @@ export const Route = createFileRoute("/arcade")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "NEXUS Arcade — Player Network" },
+      { title: "Student Login Page" },
       {
         name: "description",
-        content: "The NEXUS Arcade: play community-uploaded HTML games with your own saved progress.",
+        content: "Student login page for course resources and saved coursework progress.",
       },
-      { property: "og:title", content: "NEXUS Arcade — Player Network" },
-      { property: "og:description", content: "Play community-uploaded games and keep your own saved progress." },
+      { property: "og:title", content: "Student Login Page" },
+      { property: "og:description", content: "Student login page for course resources and saved progress." },
     ],
   }),
   component: ArcadeLayout,
