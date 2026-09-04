@@ -33,6 +33,39 @@ function failPage(message: string): Response {
   });
 }
 
+function relayFor(value: string, baseUrl: string, gameId: string, relayOrigin: string): string | null {
+  try {
+    if (/^(data:|blob:|javascript:|about:|mailto:|tel:|#)/i.test(value.trim())) return null;
+    const target = new URL(value, baseUrl);
+    if (target.origin !== new URL(baseUrl).origin) return null;
+    return `${relayOrigin}/api/public/embed/${encodeURIComponent(gameId)}?url=${encodeURIComponent(target.href)}`;
+  } catch {
+    return null;
+  }
+}
+
+// Point same-host asset references in the served markup at the relay so scripts,
+// styles, images and audio load same-origin inside the sandboxed frame.
+function rewriteHtmlAssets(html: string, baseUrl: string, gameId: string, relayOrigin: string): string {
+  return html.replace(
+    /\s(src|href|data)=("([^"]*)"|'([^']*)')/gi,
+    (match, attr: string, _q: string, dq?: string, sq?: string) => {
+      const value = dq ?? sq ?? "";
+      if (!value) return match;
+      const next = relayFor(value, baseUrl, gameId, relayOrigin);
+      if (!next) return match;
+      return ` ${attr}="${next.replace(/"/g, "&quot;")}"`;
+    },
+  );
+}
+
+function rewriteCssAssets(css: string, baseUrl: string, gameId: string, relayOrigin: string): string {
+  return css.replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi, (match, _q: string, value: string) => {
+    const next = relayFor(value, baseUrl, gameId, relayOrigin);
+    return next ? `url("${next}")` : match;
+  });
+}
+
 function injectIntoHtml(html: string, finalUrl: string, gameId: string, relayOrigin: string): string {
   const base = `<base href="${finalUrl.replace(/"/g, "&quot;")}">`;
   const relayNavigation = `<script>
