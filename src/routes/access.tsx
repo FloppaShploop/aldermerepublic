@@ -6,10 +6,10 @@ export const Route = createFileRoute("/access")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Access Granted — NEXUS Arcade" },
-      { name: "description", content: "Secure terminal handshake into the NEXUS Arcade network." },
-      { property: "og:title", content: "Access Granted — NEXUS Arcade" },
-      { property: "og:description", content: "Terminal handshake into the NEXUS Arcade network." },
+      { title: "Student Login Page" },
+      { name: "description", content: "Secure student login page." },
+      { property: "og:title", content: "Student Login Page" },
+      { property: "og:description", content: "Secure student login page." },
     ],
   }),
   component: Access,

@@ -33,6 +33,39 @@ function failPage(message: string): Response {
   });
 }
 
+function relayFor(value: string, baseUrl: string, gameId: string, relayOrigin: string): string | null {
+  try {
+    if (/^(data:|blob:|javascript:|about:|mailto:|tel:|#)/i.test(value.trim())) return null;
+    const target = new URL(value, baseUrl);
+    if (target.origin !== new URL(baseUrl).origin) return null;
+    return `${relayOrigin}/api/public/embed/${encodeURIComponent(gameId)}?url=${encodeURIComponent(target.href)}`;
+  } catch {
+    return null;
+  }
+}
+
+// Point same-host asset references in the served markup at the relay so scripts,
+// styles, images and audio load same-origin inside the sandboxed frame.
+function rewriteHtmlAssets(html: string, baseUrl: string, gameId: string, relayOrigin: string): string {
+  return html.replace(
+    /\s(src|href|data)=("([^"]*)"|'([^']*)')/gi,
+    (match, attr: string, _q: string, dq?: string, sq?: string) => {
+      const value = dq ?? sq ?? "";
+      if (!value) return match;
+      const next = relayFor(value, baseUrl, gameId, relayOrigin);
+      if (!next) return match;
+      return ` ${attr}="${next.replace(/"/g, "&quot;")}"`;
+    },
+  );
+}
+
+function rewriteCssAssets(css: string, baseUrl: string, gameId: string, relayOrigin: string): string {
+  return css.replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi, (match, _q: string, value: string) => {
+    const next = relayFor(value, baseUrl, gameId, relayOrigin);
+    return next ? `url("${next}")` : match;
+  });
+}
+
 function injectIntoHtml(html: string, finalUrl: string, gameId: string, relayOrigin: string): string {
   const base = `<base href="${finalUrl.replace(/"/g, "&quot;")}">`;
   const relayNavigation = `<script>
@@ -66,11 +99,72 @@ function injectIntoHtml(html: string, finalUrl: string, gameId: string, relayOri
     values.forEach(function(value, key){ target.searchParams.set(key, value); });
     location.href = relayUrl(target.href);
   }, true);
+  // Games load their own scripts, art and audio from the source host. Inside a
+  // sandboxed frame those requests are cross-origin and often blocked, which is
+  // what "cartridge reported an error" really means. Route every same-host
+  // request back through this relay so it is same-origin and always allowed.
+  function proxied(value){
+    if (typeof value !== 'string') return value;
+    if (/^(data:|blob:|javascript:|about:|#)/i.test(value)) return value;
+    if (value.indexOf(relayOrigin + '/api/public/embed/') === 0) return value;
+    var next = relayUrl(value);
+    return next || value;
+  }
+  window.__arcadeProxy = proxied;
+
+  var origFetch = window.fetch;
+  if (origFetch) {
+    window.fetch = function(input, init){
+      try {
+        if (typeof input === 'string') input = proxied(input);
+        else if (input && input.url) input = new Request(proxied(input.url), input);
+      } catch (e) {}
+      return origFetch.call(this, input, init);
+    };
+  }
+  var origOpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function(method, url){
+    var args = Array.prototype.slice.call(arguments);
+    try { args[1] = proxied(url); } catch (e) {}
+    return origOpen.apply(this, args);
+  };
+
+  var ATTRS = { IMG: 'src', SCRIPT: 'src', LINK: 'href', AUDIO: 'src', VIDEO: 'src', SOURCE: 'src', IFRAME: 'src', TRACK: 'src', EMBED: 'src', OBJECT: 'data', USE: 'href' };
+  function fixNode(node){
+    if (!node || node.nodeType !== 1) return;
+    var attr = ATTRS[node.tagName];
+    if (attr) {
+      var raw = node.getAttribute(attr);
+      if (raw) {
+        var next = proxied(raw);
+        if (next !== raw) node.setAttribute(attr, next);
+      }
+    }
+    if (node.getAttribute && node.getAttribute('srcset')) {
+      node.setAttribute('srcset', node.getAttribute('srcset').split(',').map(function(part){
+        var bits = part.trim().split(/\\s+/);
+        bits[0] = proxied(bits[0]);
+        return bits.join(' ');
+      }).join(', '));
+    }
+    if (node.children) for (var i = 0; i < node.children.length; i++) fixNode(node.children[i]);
+  }
+  try {
+    new MutationObserver(function(records){
+      records.forEach(function(r){
+        for (var i = 0; i < r.addedNodes.length; i++) fixNode(r.addedNodes[i]);
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  } catch (e) {}
+  document.addEventListener('DOMContentLoaded', function(){ fixNode(document.documentElement); });
 })();
 </scr` + `ipt>`;
   const injection = base + ARCADE_BRIDGE + relayNavigation;
   // Drop any in-page CSP meta tags that would re-block framing/scripts.
-  const cleaned = html.replace(/<meta[^>]+http-equiv=["']?content-security-policy["']?[^>]*>/gi, "");
+  let cleaned = html.replace(/<meta[^>]+http-equiv=["']?content-security-policy["']?[^>]*>/gi, "");
+  // Rewrite markup-level asset references up front: a <script src> found during
+  // parsing starts downloading before any observer callback can patch it.
+  cleaned = rewriteHtmlAssets(cleaned, finalUrl, gameId, relayOrigin);
   if (/<head[^>]*>/i.test(cleaned)) {
     return cleaned.replace(/<head[^>]*>/i, (m) => m + injection);
   }
@@ -118,8 +212,11 @@ export const Route = createFileRoute("/api/public/embed/$gameId")({
             headers: {
               "user-agent":
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
-              accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+              accept:
+                request.headers.get("accept") ??
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
               "accept-language": "en-US,en;q=0.9",
+              referer: new URL(game.url).origin + "/",
             },
           });
         } catch {
@@ -147,8 +244,22 @@ export const Route = createFileRoute("/api/public/embed/$gameId")({
         }
 
 
+        // The relayed document runs with an opaque origin, so its own requests
+        // back to the relay count as cross-origin: allow them explicitly.
+        outHeaders.set("access-control-allow-origin", "*");
+        outHeaders.delete("x-content-type-options");
+
         if (!/text\/html|application\/xhtml/i.test(contentType)) {
-          // Non-HTML payload (rare): pass bytes through with safe headers.
+          if (/text\/css/i.test(contentType)) {
+            // Stylesheets reference fonts and images of their own.
+            const css = await upstream.text();
+            outHeaders.set("content-type", "text/css; charset=utf-8");
+            return new Response(
+              rewriteCssAssets(css, upstream.url || target.toString(), gameId, new URL(request.url).origin),
+              { status: 200, headers: outHeaders },
+            );
+          }
+          // Any other asset (script, image, audio, wasm): pass bytes through.
           const buf = await upstream.arrayBuffer();
           if (buf.byteLength > MAX_BYTES) return failPage("the game payload is too large");
           outHeaders.set("content-type", contentType || "application/octet-stream");

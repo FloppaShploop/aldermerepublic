@@ -38,6 +38,34 @@ export const ARCADE_BRIDGE = `<script>
     } catch (e) {}
   });
 
+  // Many ripped game files call helper functions on their original host page
+  // (e.g. window.parent.maeExportApis_()). Here that function does not exist,
+  // the very first script throws, and the whole game stops before it draws.
+  // Wrap parent so unknown host helpers become harmless no-ops.
+  var realParent = window.parent;
+  var PASS_THROUGH = ['document','location','frames','window','self','top','opener','parent','length','name','closed','origin','navigator','history','localStorage','sessionStorage'];
+  try {
+    var proxied = new Proxy({}, {
+      get: function(_t, prop){
+        if (prop === 'postMessage') {
+          return function(){ return realParent.postMessage.apply(realParent, arguments); };
+        }
+        if (typeof prop !== 'string' || PASS_THROUGH.indexOf(prop) !== -1) {
+          try { return realParent[prop]; } catch (e) { return undefined; }
+        }
+        try {
+          var v = realParent[prop];
+          if (typeof v === 'function') return v.bind(realParent);
+          if (v !== undefined) return v;
+        } catch (e) {}
+        return function(){};
+      },
+      set: function(){ return true; },
+      has: function(){ return true; }
+    });
+    window.parent = proxied;
+  } catch (e) {}
+
   var pending = [];
   var resolved = null;
   window.ArcadeSave = function(data){ parent.postMessage({__arcade:'save', data: data}, '*'); };
