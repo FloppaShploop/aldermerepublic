@@ -244,8 +244,22 @@ export const Route = createFileRoute("/api/public/embed/$gameId")({
         }
 
 
+        // The relayed document runs with an opaque origin, so its own requests
+        // back to the relay count as cross-origin: allow them explicitly.
+        outHeaders.set("access-control-allow-origin", "*");
+        outHeaders.delete("x-content-type-options");
+
         if (!/text\/html|application\/xhtml/i.test(contentType)) {
-          // Non-HTML payload (rare): pass bytes through with safe headers.
+          if (/text\/css/i.test(contentType)) {
+            // Stylesheets reference fonts and images of their own.
+            const css = await upstream.text();
+            outHeaders.set("content-type", "text/css; charset=utf-8");
+            return new Response(
+              rewriteCssAssets(css, upstream.url || target.toString(), gameId, new URL(request.url).origin),
+              { status: 200, headers: outHeaders },
+            );
+          }
+          // Any other asset (script, image, audio, wasm): pass bytes through.
           const buf = await upstream.arrayBuffer();
           if (buf.byteLength > MAX_BYTES) return failPage("the game payload is too large");
           outHeaders.set("content-type", contentType || "application/octet-stream");
