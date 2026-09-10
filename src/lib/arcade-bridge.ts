@@ -3,23 +3,65 @@
 // storage/fullscreen/gamepad shims plus the ArcadeSave/ArcadeLoad progress API.
 export const ARCADE_BRIDGE = `<script>
 (function(){
-  // Sandboxed frames have an opaque origin, so touching localStorage throws and
-  // kills most games on their first line. Swap in an in-memory shim up front.
-  function shim(){
+  // Give every cartridge its own storage and mirror it to the signed-in
+  // player's cloud progress. This also keeps opaque sandbox origins from
+  // throwing when a game touches localStorage.
+  var stores = {};
+  var manualProgress = {};
+  var saveTimer = null;
+  function snapshot(store){
+    var out = {};
+    for (var i = 0; i < store.length; i++) {
+      var key = store.key(i);
+      if (key != null) out[key] = store.getItem(key);
+    }
+    return out;
+  }
+  function saveEnvelope(){
+    try {
+      realParent.postMessage({
+        __arcade: 'save',
+        data: {
+          __arcadeVersion: 1,
+          progress: manualProgress,
+          localStorage: snapshot(stores.localStorage),
+          sessionStorage: snapshot(stores.sessionStorage)
+        }
+      }, '*');
+    } catch (e) {}
+  }
+  function scheduleSave(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveEnvelope, 120);
+  }
+  function shim(name){
     var m = {};
-    return {
+    var api = {
       getItem: function(k){ return Object.prototype.hasOwnProperty.call(m, k) ? m[k] : null; },
-      setItem: function(k, v){ m[k] = String(v); },
-      removeItem: function(k){ delete m[k]; },
-      clear: function(){ m = {}; },
+      setItem: function(k, v){ m[k] = String(v); scheduleSave(); },
+      removeItem: function(k){ delete m[k]; scheduleSave(); },
+      clear: function(){ m = {}; scheduleSave(); },
       key: function(i){ return Object.keys(m)[i] != null ? Object.keys(m)[i] : null; },
-      get length(){ return Object.keys(m).length; }
+      get length(){ return Object.keys(m).length; },
+      __hydrate: function(values){
+        m = {};
+        if (!values || typeof values !== 'object') return;
+        Object.keys(values).forEach(function(k){ m[k] = String(values[k]); });
+      }
     };
+    stores[name] = api;
+    return api;
   }
   ['localStorage','sessionStorage'].forEach(function(name){
-    var ok = false;
-    try { window[name].setItem('__probe','1'); window[name].removeItem('__probe'); ok = true; } catch (e) {}
-    if (!ok) { try { Object.defineProperty(window, name, { value: shim(), configurable: true }); } catch (e) {} }
+    var storage = shim(name);
+    try { Object.defineProperty(window, name, { value: storage, configurable: true }); }
+    catch (e) {
+      try {
+        var nativeStorage = window[name];
+        nativeStorage.clear();
+        stores[name] = nativeStorage;
+      } catch (ignored) {}
+    }
   });
   // Gamepad access can be blocked by permissions policy; never let it throw.
   try {
@@ -68,14 +110,26 @@ export const ARCADE_BRIDGE = `<script>
 
   var pending = [];
   var resolved = null;
-  window.ArcadeSave = function(data){ parent.postMessage({__arcade:'save', data: data}, '*'); };
+  window.ArcadeSave = function(data){
+    manualProgress = data == null ? {} : data;
+    saveEnvelope();
+  };
   window.ArcadeLoad = function(){
     if (resolved) return Promise.resolve(resolved);
     return new Promise(function(res){ pending.push(res); });
   };
   window.addEventListener('message', function(e){
     if (e.data && e.data.__arcadeHost === 'progress') {
-      resolved = e.data.data || {};
+      var saved = e.data.data || {};
+      if (saved.__arcadeVersion === 1) {
+        manualProgress = saved.progress || {};
+        resolved = manualProgress;
+        if (stores.localStorage && stores.localStorage.__hydrate) stores.localStorage.__hydrate(saved.localStorage);
+        if (stores.sessionStorage && stores.sessionStorage.__hydrate) stores.sessionStorage.__hydrate(saved.sessionStorage);
+      } else {
+        manualProgress = saved;
+        resolved = saved;
+      }
       pending.splice(0).forEach(function(r){ r(resolved); });
     }
   });
