@@ -21,6 +21,14 @@ export const Route = createFileRoute("/arcade/play/$gameId")({
 
 type Game = { id: string; name: string; description: string; html: string; url: string | null };
 
+function progressFrameName(progress: Record<string, unknown>): string {
+  try {
+    return `__arcade_progress__:${encodeURIComponent(JSON.stringify(progress))}`;
+  } catch {
+    return "__arcade_progress__:%7B%7D";
+  }
+}
+
 function PlayGame() {
   const { gameId } = Route.useParams();
   const [game, setGame] = useState<Game | null>(null);
@@ -182,6 +190,7 @@ function PlayGame() {
           <iframe
             ref={frameRef}
             title={game.name}
+            name={progressFrameName(progressRef.current)}
             src={`/api/public/embed/${game.id}`}
             onLoad={() => {
               aliveRef.current = true;
@@ -197,6 +206,7 @@ function PlayGame() {
           <iframe
             ref={frameRef}
             title={game.name}
+            name={progressFrameName(progressRef.current)}
             srcDoc={ARCADE_BRIDGE + game.html}
             allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write"
             sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads"

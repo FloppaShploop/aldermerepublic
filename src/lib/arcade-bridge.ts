@@ -63,6 +63,25 @@ export const ARCADE_BRIDGE = `<script>
       } catch (ignored) {}
     }
   });
+  // The player places the already-fetched save in window.name. Unlike a
+  // postMessage, this is available synchronously before the cartridge's first
+  // script executes, so games that read localStorage during startup restore
+  // correctly instead of beginning a new session.
+  var bootstrap = null;
+  try {
+    var prefix = '__arcade_progress__:';
+    if (typeof window.name === 'string' && window.name.indexOf(prefix) === 0) {
+      bootstrap = JSON.parse(decodeURIComponent(window.name.slice(prefix.length)));
+      window.name = '';
+    }
+  } catch (e) { bootstrap = null; }
+  if (bootstrap && bootstrap.__arcadeVersion === 1) {
+    manualProgress = bootstrap.progress || {};
+    if (stores.localStorage && stores.localStorage.__hydrate) stores.localStorage.__hydrate(bootstrap.localStorage);
+    if (stores.sessionStorage && stores.sessionStorage.__hydrate) stores.sessionStorage.__hydrate(bootstrap.sessionStorage);
+  } else if (bootstrap) {
+    manualProgress = bootstrap;
+  }
   // Gamepad access can be blocked by permissions policy; never let it throw.
   try {
     var origPads = navigator.getGamepads && navigator.getGamepads.bind(navigator);
@@ -109,7 +128,7 @@ export const ARCADE_BRIDGE = `<script>
   } catch (e) {}
 
   var pending = [];
-  var resolved = null;
+  var resolved = bootstrap ? manualProgress : null;
   window.ArcadeSave = function(data){
     manualProgress = data == null ? {} : data;
     saveEnvelope();
