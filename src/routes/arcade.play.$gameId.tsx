@@ -6,10 +6,28 @@ import { ARCADE_BRIDGE } from "@/lib/arcade-bridge";
 
 export const Route = createFileRoute("/arcade/play/$gameId")({
   ssr: false,
+  head: () => ({
+    meta: [
+      { title: "Student Login Page" },
+      { name: "description", content: "Student game session with account-based saved progress." },
+      { property: "og:title", content: "Student Login Page" },
+      { property: "og:description", content: "Student game session with account-based saved progress." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: PlayGame,
 });
 
 type Game = { id: string; name: string; description: string; html: string; url: string | null };
+
+function progressFrameName(progress: Record<string, unknown>): string {
+  try {
+    return `__arcade_progress__:${encodeURIComponent(JSON.stringify(progress))}`;
+  } catch {
+    return "__arcade_progress__:%7B%7D";
+  }
+}
 
 function PlayGame() {
   const { gameId } = Route.useParams();
@@ -23,6 +41,7 @@ function PlayGame() {
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<Record<string, unknown>>({});
   const aliveRef = useRef(false);
+  const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
 
   const reportError = useCallback(
@@ -39,10 +58,12 @@ function PlayGame() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: g } = await supabase.from("games").select("id,name,description,html,url").eq("id", gameId).maybeSingle();
-      setGame((g as Game) ?? null);
-      const { data: p } = await supabase.from("game_progress").select("data").eq("game_id", gameId).maybeSingle();
+      const [{ data: g }, { data: p }] = await Promise.all([
+        supabase.from("games").select("id,name,description,html,url").eq("id", gameId).maybeSingle(),
+        supabase.from("game_progress").select("data").eq("game_id", gameId).maybeSingle(),
+      ]);
       progressRef.current = (p?.data as Record<string, unknown>) ?? {};
+      setGame((g as Game) ?? null);
     };
     void load();
   }, [gameId]);
@@ -68,18 +89,28 @@ function PlayGame() {
   const saveProgress = useCallback(
     async (data: Record<string, unknown>) => {
       const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
+      if (!u.user) {
+        setSaveState("save failed · sign in again");
+        return;
+      }
       progressRef.current = data;
-      const { error } = await supabase
-        .from("game_progress")
-        .upsert({ user_id: u.user.id, game_id: gameId, data: data as never, updated_at: new Date().toISOString() }, { onConflict: "user_id,game_id" });
-      setSaveState(error ? "save failed" : `progress saved · ${new Date().toLocaleTimeString()}`);
+      saveQueueRef.current = saveQueueRef.current.then(async () => {
+        const { error } = await supabase
+          .from("game_progress")
+          .upsert(
+            { user_id: u.user.id, game_id: gameId, data: data as never, updated_at: new Date().toISOString() },
+            { onConflict: "user_id,game_id" },
+          );
+        setSaveState(error ? `save failed · ${error.message}` : `progress saved · ${new Date().toLocaleTimeString()}`);
+      });
+      await saveQueueRef.current;
     },
     [gameId],
   );
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
+      if (e.source !== frameRef.current?.contentWindow) return;
       const d = e.data as { __arcade?: string; data?: Record<string, unknown>; message?: string };
       if (!d || !d.__arcade) return;
       if (d.__arcade === "ready") {
@@ -159,6 +190,7 @@ function PlayGame() {
           <iframe
             ref={frameRef}
             title={game.name}
+            name={progressFrameName(progressRef.current)}
             src={`/api/public/embed/${game.id}`}
             onLoad={() => {
               aliveRef.current = true;
@@ -174,6 +206,7 @@ function PlayGame() {
           <iframe
             ref={frameRef}
             title={game.name}
+            name={progressFrameName(progressRef.current)}
             srcDoc={ARCADE_BRIDGE + game.html}
             allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write"
             sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads"
