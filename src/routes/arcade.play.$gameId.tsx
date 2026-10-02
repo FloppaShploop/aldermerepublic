@@ -42,6 +42,7 @@ function PlayGame() {
   const progressRef = useRef<Record<string, unknown>>({});
   const aliveRef = useRef(false);
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const lastSavedRef = useRef<string>("");
 
 
   const reportError = useCallback(
@@ -58,11 +59,21 @@ function PlayGame() {
 
   useEffect(() => {
     const load = async () => {
+      const { data: s } = await supabase.auth.getSession();
+      const uid = s.session?.user.id ?? "";
       const [{ data: g }, { data: p }] = await Promise.all([
         supabase.from("games").select("id,name,description,html,url").eq("id", gameId).maybeSingle(),
-        supabase.from("game_progress").select("data").eq("game_id", gameId).maybeSingle(),
+        supabase.from("game_progress").select("data").eq("game_id", gameId).eq("user_id", uid).maybeSingle(),
       ]);
-      progressRef.current = (p?.data as Record<string, unknown>) ?? {};
+      const raw = (p?.data as Record<string, unknown> | null) ?? null;
+      lastSavedRef.current = raw ? JSON.stringify(raw) : "";
+      const envelope: Record<string, unknown> =
+        raw && raw["__arcadeVersion"] === 1
+          ? { ...raw }
+          : { __arcadeVersion: 1, progress: raw ?? {}, localStorage: {}, sessionStorage: {}, idb: {} };
+      // Lets the in-frame bridge keep each player's game databases separate.
+      envelope["meta"] = { u: uid, g: gameId };
+      progressRef.current = envelope;
       setGame((g as Game) ?? null);
     };
     void load();
@@ -88,19 +99,23 @@ function PlayGame() {
 
   const saveProgress = useCallback(
     async (data: Record<string, unknown>) => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) {
+      const { data: s } = await supabase.auth.getSession();
+      const user = s.session?.user;
+      if (!user) {
         setSaveState("save failed · sign in again");
         return;
       }
-      progressRef.current = data;
+      const serialized = JSON.stringify(data);
+      if (serialized === lastSavedRef.current) return;
+      lastSavedRef.current = serialized;
       saveQueueRef.current = saveQueueRef.current.then(async () => {
         const { error } = await supabase
           .from("game_progress")
           .upsert(
-            { user_id: u.user.id, game_id: gameId, data: data as never, updated_at: new Date().toISOString() },
+            { user_id: user.id, game_id: gameId, data: data as never, updated_at: new Date().toISOString() },
             { onConflict: "user_id,game_id" },
           );
+        if (error) lastSavedRef.current = "";
         setSaveState(error ? `save failed · ${error.message}` : `progress saved · ${new Date().toLocaleTimeString()}`);
       });
       await saveQueueRef.current;
