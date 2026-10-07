@@ -66,7 +66,7 @@ function Home() {
           <span className="mb-4 block text-sm font-bold uppercase tracking-[0.22em] text-accent">
             Est. 1782
           </span>
-          <h1 className="mb-8 text-5xl leading-tight text-foreground lg:text-7xl">
+          <h1 className="mb-8 text-6xl leading-[0.9] text-foreground lg:text-[7.5rem]">
             Where Tradition <br />
             <span className="italic text-secondary-foreground">Meets Tomorrow</span>
           </h1>

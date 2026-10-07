@@ -12,7 +12,7 @@ const nav = [
 export function CollegeChrome({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-50 bg-primary text-primary-foreground">
+      <header className="sticky top-0 z-50 border-b-4 border-foreground bg-background text-foreground">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-5 lg:px-16">
           <Link to="/" className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center border-2 border-accent font-serif-display text-xl font-bold italic text-accent">
@@ -106,12 +106,12 @@ export function CollegeChrome({ children }: { children: ReactNode }) {
 
 export function PageHeader({ title, kicker }: { title: string; kicker: string }) {
   return (
-    <div className="border-b border-border bg-background">
-      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-16">
+    <div className="border-b-4 border-foreground bg-background">
+      <div className="mx-auto max-w-7xl px-6 py-20 lg:px-16">
         <span className="mb-4 block text-sm font-bold uppercase tracking-[0.22em] text-accent">
           {kicker}
         </span>
-        <h1 className="text-4xl leading-tight text-foreground lg:text-6xl">{title}</h1>
+        <h1 className="text-5xl leading-[0.95] text-foreground lg:text-8xl">{title}</h1>
         <div className="mt-6 h-1 w-24 bg-accent" />
       </div>
     </div>
