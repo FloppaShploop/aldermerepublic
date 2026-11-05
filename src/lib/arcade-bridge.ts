@@ -250,7 +250,7 @@ export const ARCADE_BRIDGE = `<script>
         if (!orig) return;
         IDBObjectStore.prototype[fn] = function(){
           var out = orig.apply(this, arguments);
-          if (!restoringIdb) scheduleSave(900);
+          if (!restoringIdb) scheduleSave(400);
           return out;
         };
       });
@@ -392,9 +392,25 @@ export const ARCADE_BRIDGE = `<script>
       pending.splice(0).forEach(function(r){ r(resolved); });
     }
   });
+  // Audio unlock: track AudioContexts and resume them on first user gesture
+  try {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) {
+      var ctxs = [];
+      var Wrapped = function(o){ var c = o ? new AC(o) : new AC(); ctxs.push(c);
+        var r = c.resume ? c.resume.bind(c) : null;
+        if (r) c.resume = function(){ return r().catch(function(){ return undefined; }); };
+        return c; };
+      Wrapped.prototype = AC.prototype;
+      window.AudioContext = Wrapped; window.webkitAudioContext = Wrapped;
+      var unlock = function(){ ctxs.forEach(function(c){ try { if (c.state !== 'running') c.resume(); } catch(_){} }); };
+      ['pointerdown','keydown','touchstart','click'].forEach(function(t){ window.addEventListener(t, unlock, true); });
+    }
+  } catch(_){}
+  window.addEventListener('blur', function(){ saveEnvelope(); });
   // Cross-origin scripts report a censored "Script error." with no detail.
   function useless(msg){
-    return !msg || /^\\s*script error\\.?\\s*$/i.test(msg) || msg === 'undefined' || msg === 'null';
+    return !msg || /^\\s*script error\\.?\\s*$/i.test(msg) || msg === 'undefined' || msg === 'null' || /audio device|transient activation|\\[object Event\\]/i.test(msg);
   }
   window.addEventListener('error', function(e){
     var msg = e && e.message;
@@ -409,7 +425,7 @@ export const ARCADE_BRIDGE = `<script>
     realParent.postMessage({__arcade:'error', message: msg}, '*');
   });
   // Periodic safety save so progress survives leaving the page abruptly.
-  setInterval(function(){ if (!document.hidden) saveEnvelope(); }, 20000);
+  setInterval(function(){ if (!document.hidden) saveEnvelope(); }, 8000);
   realParent.postMessage({__arcade:'ready'}, '*');
 })();
 </scr` + `ipt>
