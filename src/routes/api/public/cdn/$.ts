@@ -18,7 +18,7 @@ async function relay(request: Request): Promise<Response> {
     accept: request.headers.get("accept") ?? "*/*",
   };
   const range = request.headers.get("range");
-  if (range) headers.range = range;
+  if (range) headers["range"] = range;
 
   let upstream: Response;
   try {
