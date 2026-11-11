@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Maximize, Minimize } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ARCADE_BRIDGE } from "@/lib/arcade-bridge";
+import { CDN_PROXY_PATH, rewriteCdnUrls } from "@/lib/cdn-proxy";
 
 export const Route = createFileRoute("/arcade/play/$gameId")({
   ssr: false,
@@ -72,7 +73,7 @@ function PlayGame() {
           ? { ...raw }
           : { __arcadeVersion: 1, progress: raw ?? {}, localStorage: {}, sessionStorage: {}, idb: {} };
       // Lets the in-frame bridge keep each player's game databases separate.
-      envelope["meta"] = { u: uid, g: gameId };
+      envelope["meta"] = { u: uid, g: gameId, cdn: window.location.origin + CDN_PROXY_PATH };
       progressRef.current = envelope;
       setGame((g as Game) ?? null);
     };
@@ -222,7 +223,7 @@ function PlayGame() {
             ref={frameRef}
             title={game.name}
             name={progressFrameName(progressRef.current)}
-            srcDoc={ARCADE_BRIDGE + game.html}
+            srcDoc={ARCADE_BRIDGE + rewriteCdnUrls(game.html, window.location.origin)}
             allow="autoplay; fullscreen; gamepad; pointer-lock; accelerometer; gyroscope; xr-spatial-tracking; clipboard-write"
             sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-modals allow-forms allow-popups allow-downloads"
             className={`w-full border-0 bg-black ${isFullscreen ? "h-full" : "h-[70vh]"}`}

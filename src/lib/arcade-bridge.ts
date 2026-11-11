@@ -6,6 +6,8 @@
 //   { __arcadeVersion: 1, progress, localStorage, sessionStorage, idb }
 // `idb` holds a dump of the game's IndexedDB databases (Unity, Defold,
 // emulators and localforage-based games save there, not in localStorage).
+import { CDN_PROXY_HOSTS } from "./cdn-proxy";
+
 export const ARCADE_BRIDGE = `<script>
 (function(){
   var realParent = window.parent;
@@ -27,6 +29,63 @@ export const ARCADE_BRIDGE = `<script>
   } catch (e) { bootstrap = null; }
   var meta = (bootstrap && bootstrap.meta) || {};
   var hadBootstrap = !!(bootstrap && bootstrap.__arcadeVersion === 1);
+
+  // ---------- CDN relay: games built at runtime with absolute CDN URLs ----------
+  // Pasted code is already rewritten; this catches URLs the game assembles later.
+  (function(){
+    var relay = meta.cdn;
+    if (!relay || typeof relay !== 'string') return;
+    var hosts = ${JSON.stringify(CDN_PROXY_HOSTS)};
+    function cdn(u){
+      if (typeof u !== 'string') return u;
+      var m = /^(?:https?:)?\\/\\/([^\\/?#]+)(\\/.*)?$/i.exec(u);
+      if (!m || hosts.indexOf(m[1].toLowerCase()) === -1) return u;
+      return relay + m[1].toLowerCase() + (m[2] || '/');
+    }
+    window.__arcadeCdn = cdn;
+    try {
+      var f = window.fetch;
+      if (f) window.fetch = function(input, init){
+        try {
+          if (typeof input === 'string') input = cdn(input);
+          else if (input && input.url && cdn(input.url) !== input.url) input = new Request(cdn(input.url), input);
+        } catch (e) {}
+        return f.call(this, input, init);
+      };
+    } catch (e) {}
+    try {
+      var xo = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function(){
+        var a = Array.prototype.slice.call(arguments);
+        try { a[1] = cdn(String(a[1])); } catch (e) {}
+        return xo.apply(this, a);
+      };
+    } catch (e) {}
+    [['HTMLScriptElement','src'],['HTMLImageElement','src'],['HTMLLinkElement','href'],['HTMLMediaElement','src'],['HTMLSourceElement','src'],['HTMLIFrameElement','src']].forEach(function(pair){
+      try {
+        var C = window[pair[0]]; if (!C) return;
+        var d = Object.getOwnPropertyDescriptor(C.prototype, pair[1]);
+        if (!d || !d.set) return;
+        Object.defineProperty(C.prototype, pair[1], { configurable: true, enumerable: d.enumerable, get: d.get, set: function(v){ d.set.call(this, cdn(v)); } });
+      } catch (e) {}
+    });
+    try {
+      var sa = Element.prototype.setAttribute;
+      Element.prototype.setAttribute = function(n, v){
+        var k = String(n).toLowerCase();
+        if (k === 'src' || k === 'href') v = cdn(String(v));
+        return sa.call(this, n, v);
+      };
+    } catch (e) {}
+    try {
+      var W = window.Worker;
+      if (W) {
+        var PW = function(u, o){ return o === undefined ? new W(cdn(typeof u === 'string' ? u : String(u))) : new W(cdn(typeof u === 'string' ? u : String(u)), o); };
+        PW.prototype = W.prototype;
+        window.Worker = PW;
+      }
+    } catch (e) {}
+  })();
 
   function snapshot(store){
     var out = {};

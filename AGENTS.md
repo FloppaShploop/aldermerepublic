@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Pasted games load CDN files (jsdelivr etc.) through /api/public/cdn/<host>/<path> (allowlist in src/lib/cdn-proxy.ts) because school networks block the CDNs directly.
