@@ -4,6 +4,8 @@ import { CollegeChrome, PageHeader } from "@/components/CollegeChrome";
 export const Route = createFileRoute("/admissions")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Admissions & Aid — Aldermere University" },
       {
         name: "description",

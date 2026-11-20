@@ -6,6 +6,8 @@ import { PORTAL_EMAIL, PORTAL_PASSWORD, unlockPortal } from "@/lib/portalGate";
 export const Route = createFileRoute("/portal")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Student Portal — Aldermere University" },
       {
         name: "description",

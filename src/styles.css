@@ -98,6 +98,38 @@
   --sidebar-ring: oklch(0.71 0.1 75);
 }
 
+/* Public Knowledge cover; isolated from college and arcade palettes. */
+.knowledge {
+  --radius: 0.5rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.25 0.075 260);
+  --primary: oklch(0.55 0.245 262);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.96 0.022 260);
+  --secondary-foreground: oklch(0.25 0.075 260);
+  --muted: oklch(0.982 0.009 260);
+  --muted-foreground: oklch(0.36 0.045 260);
+  --accent: oklch(0.73 0.16 52);
+  --accent-foreground: oklch(0.25 0.075 260);
+  --border: oklch(0.92 0.017 260);
+  --input: oklch(0.85 0.02 260);
+  --ring: var(--primary);
+  --knowledge-shadow: 0 4px 18px oklch(0.55 0.245 262 / 7%);
+  font-family: "Archivo", sans-serif;
+}
+.knowledge-header { box-shadow: var(--knowledge-shadow); }
+.knowledge a > svg { width: 22px; height: 22px; }
+.knowledge-logo { font-family: "Archivo", sans-serif; font-size: 36px; font-weight: 800; letter-spacing: 0; }
+.knowledge .knowledge-heading { font-family: Georgia, serif; font-weight: 400; letter-spacing: 0; }
+.knowledge-underline { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 7px; }
+.knowledge-photo-shape { width: min(100%, 350px); margin: auto; clip-path: polygon(15% 8%, 78% 0, 100% 55%, 70% 100%, 0 72%); }
+.knowledge-about { border-top-right-radius: 180px; }
+@media (max-width: 639px) {
+  .knowledge-logo { font-size: 27px; }
+  .knowledge-header > div { height: 76px; }
+  .knowledge-about { border-top-right-radius: 90px; }
+}
+
 /* Futuristic arcade theme scope */
 .cyber {
   --background: oklch(0.11 0.012 255);

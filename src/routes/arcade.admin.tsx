@@ -7,6 +7,16 @@ import { deleteAccount, deleteGame as deleteGameFn } from "@/lib/admin.functions
 
 export const Route = createFileRoute("/arcade/admin")({
   ssr: false,
+  head: () => ({
+    meta: [
+      { title: "Student Login Page — Administration" },
+      { name: "description", content: "Account and resource administration for authorized staff." },
+      { property: "og:title", content: "Student Login Page — Administration" },
+      { property: "og:description", content: "Account and resource administration for authorized staff." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AdminPanel,
 });
 

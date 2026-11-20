@@ -9,9 +9,9 @@ export const Route = createFileRoute("/arcade/play/$gameId")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Student Login Page" },
+      { title: "Student Login Page — Session" },
       { name: "description", content: "Student game session with account-based saved progress." },
-      { property: "og:title", content: "Student Login Page" },
+      { property: "og:title", content: "Student Login Page — Session" },
       { property: "og:description", content: "Student game session with account-based saved progress." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

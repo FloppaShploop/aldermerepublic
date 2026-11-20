@@ -1,24 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CollegeChrome } from "@/components/CollegeChrome";
-import heroLibrary from "@/assets/hero-library.jpg";
-import newsLab from "@/assets/news-lab.jpg";
-import newsGala from "@/assets/news-gala.jpg";
-import newsLecture from "@/assets/news-lecture.jpg";
-import portalStudents from "@/assets/portal-students.jpg";
+import { ArrowRight, BookOpen, ShieldCheck, Layers } from "lucide-react";
+import { KnowledgeChrome } from "@/components/KnowledgeChrome";
+import { Button } from "@/components/ui/button";
+import classroom from "@/assets/knowledge-classroom.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Aldermere University — Where Tradition Meets Tomorrow" },
+      { title: "Knowledge — A world of learning, connected" },
       {
         name: "description",
         content:
-          "Aldermere University is a private research university offering 140+ programs, a 9:1 student-faculty ratio and a forested New England campus.",
+          "Knowledge connects students with their learning resources. Explore school resources and sign in to your student portal.",
       },
-      { property: "og:title", content: "Aldermere University — Where Tradition Meets Tomorrow" },
+      { property: "og:title", content: "Knowledge — A world of learning, connected" },
       {
         property: "og:description",
-        content: "A private research university in New England. Explore academics, admissions and campus life.",
+        content: "A world of learning, connected. School resources and student sign-in with Knowledge.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -27,156 +25,38 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const stats = [
-  { k: "9:1", v: "Student–faculty ratio" },
-  { k: "140+", v: "Research fields" },
-  { k: "$24M", v: "Annual scholarship aid" },
-  { k: "12k", v: "Global alumni network" },
-];
-
-const news = [
-  {
-    img: newsLab,
-    alt: "Student examining a sample through a microscope with forest visible through the lab window",
-    tag: "Research",
-    t: "Aldermere scientists discover rare endemic moss species",
-    d: "October 24, 2026 — 4 min read",
-  },
-  {
-    img: newsGala,
-    alt: "String lights over the quad during the annual winter gala",
-    tag: "Campus Life",
-    t: "The Annual Winter Solstice Gala: a tradition of lights",
-    d: "October 18, 2026 — 6 min read",
-  },
-  {
-    img: newsLecture,
-    alt: "Professor lecturing in a wood-paneled seminar room",
-    tag: "Academics",
-    t: "New interdisciplinary major: Eco-Social Policy & Ethics",
-    d: "October 12, 2026 — 3 min read",
-  },
-];
-
 function Home() {
   return (
-    <CollegeChrome>
-      <section className="grid min-h-[80vh] grid-cols-1 items-stretch overflow-hidden border-b border-border lg:grid-cols-12">
-        <div className="z-10 flex flex-col justify-center px-6 py-16 lg:col-span-7 lg:px-16 lg:py-24">
-          <span className="mb-4 block text-sm font-bold uppercase tracking-[0.22em] text-accent">
-            Est. 1782
-          </span>
-          <h1 className="mb-8 text-6xl leading-[0.9] text-foreground lg:text-[7.5rem]">
-            Where Tradition <br />
-            <span className="italic text-secondary-foreground">Meets Tomorrow</span>
-          </h1>
-          <p className="mb-10 max-w-md text-lg leading-relaxed text-muted-foreground">
-            Leading the vanguard of academic excellence in the heart of the forest. Discover a
-            community dedicated to global impact and rigorous inquiry.
-          </p>
-          <div className="flex flex-wrap items-center gap-6">
-            <Link
-              to="/academics"
-              className="bg-primary px-8 py-4 text-xs font-bold uppercase tracking-[0.18em] text-primary-foreground transition-colors hover:bg-secondary-foreground"
-            >
-              Explore Programs
-            </Link>
-            <Link
-              to="/admissions"
-              className="border-b-2 border-accent pb-1 text-sm font-bold text-foreground transition-colors hover:text-accent"
-            >
-              Request Prospectus
-            </Link>
-          </div>
-        </div>
-        <div className="relative h-[400px] lg:col-span-5 lg:h-auto">
-          <img
-            src={heroLibrary}
-            alt="The grand Aldermere library reading room with emerald lamps and dark wood shelves"
-            width={960}
-            height={1200}
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute right-0 bottom-0 hidden bg-accent p-8 lg:block">
-            <p className="font-serif-display text-xl italic text-accent-foreground">
-              “The forest is our classroom, <br />
-              knowledge is our legacy.”
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-primary px-6 py-12 text-primary-foreground lg:px-16">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 lg:grid-cols-4">
-          {stats.map((s) => (
-            <div key={s.v} className="text-center">
-              <div className="mb-2 font-serif-display text-3xl text-accent lg:text-4xl">{s.k}</div>
-              <div className="text-xs uppercase tracking-[0.18em] opacity-70">{s.v}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-6 py-24 lg:px-16">
-        <div className="mb-16 flex items-end justify-between">
+    <KnowledgeChrome>
+      <section className="knowledge-intro mx-auto max-w-6xl px-6 pt-12 pb-16 md:px-10 md:pt-20">
+        <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
           <div>
-            <h2 className="mb-2 text-4xl text-foreground">Latest from the Forest</h2>
-            <div className="h-1 w-24 bg-accent" />
+            <h1 className="knowledge-heading text-5xl leading-[1.1] md:text-6xl">Knowledge.<br />A world of <span className="knowledge-underline">learning,</span><br />connected.</h1>
+            <p className="mt-6 max-w-md text-base leading-7 text-muted-foreground md:text-lg">Bring your school day together. A single place to connect with your resources, explore new ideas, and keep learning.</p>
           </div>
-          <span className="hidden text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground sm:block">
-            The Aldermere Review
-          </span>
+          <img src={classroom.url} width={1448} height={1086} alt="Two students enjoying learning together with a tablet in their classroom" className="aspect-[4/3] w-full object-cover" />
         </div>
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
-          {news.map((n) => (
-            <article key={n.t} className="group">
-              <div className="mb-6 aspect-[4/5] overflow-hidden bg-muted">
-                <img
-                  src={n.img}
-                  alt={n.alt}
-                  width={640}
-                  height={800}
-                  loading="lazy"
-                  className="h-full w-full object-cover opacity-90 transition-all duration-700 group-hover:scale-[1.03] group-hover:opacity-100"
-                />
-              </div>
-              <span className="text-xs font-bold uppercase tracking-[0.18em] text-accent">
-                {n.tag}
-              </span>
-              <h3 className="mt-2 mb-4 text-xl leading-snug group-hover:underline">{n.t}</h3>
-              <p className="text-sm text-muted-foreground">{n.d}</p>
-            </article>
-          ))}
+        <div className="relative z-10 mt-10 grid max-w-[500px] grid-cols-2 gap-3">
+          <Button asChild className="col-span-2 h-20 justify-between rounded-lg px-6 text-xl font-normal md:text-2xl"><Link to="/portal">Log in as a student<ArrowRight className="size-6 rounded-full border border-primary-foreground p-1" /></Link></Button>
+          <Button asChild variant="outline" className="h-24 justify-between gap-3 whitespace-normal rounded-lg border-border px-5 text-left text-base font-normal"><Link to="/academics">For schools<ArrowRight className="text-primary" /></Link></Button>
+          <Button asChild variant="outline" className="h-24 justify-between gap-3 whitespace-normal rounded-lg border-border px-5 text-left text-base font-normal"><Link to="/campus-life">For our<br />community<ArrowRight className="text-primary" /></Link></Button>
         </div>
       </section>
-
-      <section className="px-6 pb-24 lg:px-16">
-        <div className="mx-auto flex max-w-7xl flex-col items-stretch bg-primary lg:flex-row">
-          <div className="flex flex-col justify-center p-12 lg:w-1/2 lg:p-20">
-            <h2 className="mb-6 text-4xl text-primary-foreground">Current Students</h2>
-            <p className="mb-8 max-w-md text-primary-foreground/70">
-              Access your course materials, campus resources, and academic support tools in one
-              secure location.
-            </p>
-            <Link
-              to="/portal"
-              className="w-fit bg-accent px-8 py-4 text-xs font-bold uppercase tracking-[0.18em] text-accent-foreground transition-colors hover:bg-primary-foreground"
-            >
-              Student Portal Login
-            </Link>
-          </div>
-          <div className="min-h-[300px] lg:h-auto lg:w-1/2">
-            <img
-              src={portalStudents}
-              alt="Students studying together in the Aldermere library lounge"
-              width={800}
-              height={640}
-              loading="lazy"
-              className="h-full w-full object-cover opacity-80"
-            />
+      <section className="knowledge-about bg-secondary px-6 py-20 md:px-10 md:py-28">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="knowledge-heading text-4xl md:text-5xl">What is Knowledge?</h2>
+          <div className="mt-16 grid items-center gap-12 md:grid-cols-2 md:gap-24">
+            <div className="knowledge-photo-shape"><img src={classroom.url} width={1448} height={1086} loading="lazy" alt="Students sharing ideas in a classroom" className="aspect-square w-full object-cover" /></div>
+            <div><BookOpen className="mb-5 size-8 text-primary" /><h3 className="knowledge-heading text-3xl md:text-4xl">Power classroom<br />learning</h3><p className="mt-5 max-w-md text-lg leading-8 text-muted-foreground">Discover the resources, people, and possibilities that make every school day a chance to grow.</p><Button asChild variant="link" className="mt-8 px-0 text-base"><Link to="/academics">Schools overview<ArrowRight /></Link></Button></div>
           </div>
         </div>
       </section>
-    </CollegeChrome>
+      <section className="bg-muted px-6 py-20 md:px-10 md:py-28">
+        <div className="mx-auto grid max-w-6xl gap-14 md:grid-cols-2 md:gap-24">
+          <div><ShieldCheck className="mb-5 size-8 text-primary" /><h2 className="knowledge-heading text-3xl md:text-4xl">Your school day.<br />Your own space.</h2><p className="mt-5 max-w-md text-lg leading-8 text-muted-foreground">Sign in to your student portal and stay connected to your school community.</p><Button asChild variant="link" className="mt-8 px-0 text-base"><Link to="/portal">Student sign-in<ArrowRight /></Link></Button></div>
+          <div><Layers className="mb-5 size-8 text-primary" /><h2 className="knowledge-heading text-3xl md:text-4xl">One community.<br />Endless possibilities.</h2><p className="mt-5 max-w-md text-lg leading-8 text-muted-foreground">From the classroom to campus life, find your next interest and make room for something new.</p><Button asChild variant="link" className="mt-8 px-0 text-base"><Link to="/campus-life">Explore student life<ArrowRight /></Link></Button></div>
+        </div>
+      </section>
+    </KnowledgeChrome>
   );
 }

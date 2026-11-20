@@ -4,6 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/arcade/")({
   ssr: false,
+  head: () => ({
+    meta: [
+      { title: "Student Login Page — Resources" },
+      { name: "description", content: "Browse your available student resources and return to saved progress." },
+      { property: "og:title", content: "Student Login Page — Resources" },
+      { property: "og:description", content: "Browse your available student resources and return to saved progress." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: ArcadeIndex,
 });
 

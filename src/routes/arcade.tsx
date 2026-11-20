@@ -8,6 +8,8 @@ export const Route = createFileRoute("/arcade")({
   ssr: false,
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Student Login Page" },
       {
         name: "description",

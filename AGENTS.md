@@ -9,3 +9,4 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 - Pasted games load CDN files (jsdelivr etc.) through /api/public/cdn/<host>/<path> (allowlist in src/lib/cdn-proxy.ts) because school networks block the CDNs directly.
+- Keep the public cover in KnowledgeChrome with scoped .knowledge tokens so cover redesigns do not alter the college login or arcade themes.

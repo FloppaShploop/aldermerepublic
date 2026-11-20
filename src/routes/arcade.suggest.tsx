@@ -5,6 +5,16 @@ import { useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/arcade/suggest")({
   ssr: false,
+  head: () => ({
+    meta: [
+      { title: "Student Login Page — Suggestions" },
+      { name: "description", content: "Send and manage suggestions for student resources." },
+      { property: "og:title", content: "Student Login Page — Suggestions" },
+      { property: "og:description", content: "Send and manage suggestions for student resources." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: SuggestGame,
 });
 

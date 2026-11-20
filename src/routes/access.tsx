@@ -6,9 +6,11 @@ export const Route = createFileRoute("/access")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Student Login Page" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Student Login Page — Access" },
       { name: "description", content: "Secure student login page." },
-      { property: "og:title", content: "Student Login Page" },
+      { property: "og:title", content: "Student Login Page — Access" },
       { property: "og:description", content: "Secure student login page." },
     ],
   }),
